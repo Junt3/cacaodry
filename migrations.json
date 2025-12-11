@@ -1,0 +1,20 @@
+{
+  "migration_20251211_120014": {
+    "name": "migration_001_initial_schema",
+    "description": "Esquema inicial de la base de datos",
+    "applied_at": "2025-12-11T12:00:14.929580",
+    "version": "1.0.0"
+  },
+  "migration_20251211_120319": {
+    "name": "migration_003_add_user_fields",
+    "description": "Campos adicionales para tracking de usuario",
+    "applied_at": "2025-12-11T12:03:19.604341",
+    "version": "1.0.0"
+  },
+  "migration_20251211_173743": {
+    "name": "migration_004_add_precio_cacao",
+    "description": "Añadir configuración del precio del cacao",
+    "applied_at": "2025-12-11T17:37:43.265000",
+    "version": "1.0.0"
+  }
+}

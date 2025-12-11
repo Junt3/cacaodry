@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Página No Encontrada - Sistema de Secado de Cacao{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-card">
+        <h1>404</h1>
+        <h2>Página No Encontrada</h2>
+        <p>La página que estás buscando no existe o ha sido movida.</p>
+        <div class="error-actions">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">Volver al Inicio</a>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+    padding: 2rem;
+}
+
+.error-card {
+    background: white;
+    border-radius: 10px;
+    padding: 3rem;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    max-width: 500px;
+}
+
+.error-card h1 {
+    font-size: 6rem;
+    color: #8B4513;
+    margin-bottom: 1rem;
+    line-height: 1;
+}
+
+.error-card h2 {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.error-card p {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 2rem;
+}
+
+.error-actions {
+    margin-top: 2rem;
+}
+</style>
+{% endblock %}

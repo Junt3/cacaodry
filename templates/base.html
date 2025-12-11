@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Secado de Cacao{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilo.css') }}">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Sistema de Cálculo de Secado de Cacao</h1>
+            <p>Herramienta para estimar tiempos de secado industrial y solar</p>
+            <nav class="main-nav">
+                <a href="{{ url_for('index') }}" class="nav-link">Inicio</a>
+                <a href="{{ url_for('historial') }}" class="nav-link">Historial</a>
+                <a href="{{ url_for('ver_errores') }}" class="nav-link">Errores</a>
+                <a href="{{ url_for('configuracion') }}" class="nav-link">Configuración</a>
+            </nav>
+        </div>
+    </header>
+    
+    <main>
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 Sistema de Secado de Cacao - Algoritmo basado en Modelo de Page</p>
+        </div>
+    </footer>
+
+    <!-- Modal de Confirmación Reutilizable -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="confirmTitle">Confirmar Acción</h3>
+                <span class="close" onclick="cerrarConfirmModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">¿Está seguro de realizar esta acción?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="cerrarConfirmModal()">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmButton">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Alerta/Error Reutilizable -->
+    <div id="alertModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header alert-header">
+                <h3 id="alertTitle">Mensaje</h3>
+                <span class="close" onclick="cerrarAlertModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="alertMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="cerrarAlertModal()">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Funciones para manejar el modal de confirmación
+        let confirmCallback = null;
+
+        function mostrarConfirmacion(titulo, mensaje, callback) {
+            document.getElementById('confirmTitle').textContent = titulo;
+            document.getElementById('confirmMessage').textContent = mensaje;
+            document.getElementById('confirmModal').style.display = 'block';
+            confirmCallback = callback;
+        }
+
+        function cerrarConfirmModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+            confirmCallback = null;
+        }
+
+        document.getElementById('confirmButton').addEventListener('click', function() {
+            if (confirmCallback) {
+                confirmCallback();
+            }
+            cerrarConfirmModal();
+        });
+
+        // Funciones para manejar el modal de alerta
+        function mostrarAlerta(titulo, mensaje, tipo = 'info') {
+            const modal = document.getElementById('alertModal');
+            const header = modal.querySelector('.alert-header');
+            
+            document.getElementById('alertTitle').textContent = titulo;
+            document.getElementById('alertMessage').textContent = mensaje;
+            
+            // Cambiar el color del header según el tipo
+            header.className = 'modal-header alert-header';
+            if (tipo === 'error') {
+                header.style.background = '#dc3545';
+            } else if (tipo === 'warning') {
+                header.style.background = '#ffc107';
+                header.style.color = '#000';
+            } else {
+                header.style.background = '#8B4513';
+                header.style.color = '#fff';
+            }
+            
+            document.getElementById('alertModal').style.display = 'block';
+        }
+
+        function cerrarAlertModal() {
+            document.getElementById('alertModal').style.display = 'none';
+        }
+
+        // Cerrar modales al hacer clic fuera de ellos
+        window.onclick = function(event) {
+            const confirmModal = document.getElementById('confirmModal');
+            const alertModal = document.getElementById('alertModal');
+            
+            if (event.target == confirmModal) {
+                cerrarConfirmModal();
+            }
+            if (event.target == alertModal) {
+                cerrarAlertModal();
+            }
+        }
+    </script>
+
+    <style>
+        /* Estilos adicionales para los modales */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 0;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            background: #8B4513;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+        }
+
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            opacity: 0.7;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #8B4513;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+</body>
+</html>

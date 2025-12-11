@@ -1,0 +1,527 @@
+{% extends "base.html" %}
+
+{% block title %}Historial de Cálculos - Sistema de Secado de Cacao{% endblock %}
+
+{% block content %}
+<div class="historial-container">
+    <div class="historial-header">
+        <h2>Historial de Cálculos de Secado</h2>
+        <div class="historial-actions">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">Nuevo Cálculo</a>
+            <a href="{{ url_for('api_calculos') }}" class="btn btn-secondary" target="_blank">Exportar JSON</a>
+            <button type="button" class="btn btn-danger" id="btn-eliminar-seleccionados" style="display: none;">Eliminar Seleccionados</button>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filtros-container">
+        <h3>Filtros</h3>
+        <form method="GET" action="{{ url_for('historial') }}" class="filtros-form">
+            <div class="filtros-row">
+                <div class="filtro-group">
+                    <label for="modo_filtro">Modo:</label>
+                    <select id="modo_filtro" name="modo">
+                        <option value="">Todos</option>
+                        <option value="INDUSTRIAL" {% if modo_filtro == 'INDUSTRIAL' %}selected{% endif %}>Industrial</option>
+                        <option value="SOLAR" {% if modo_filtro == 'SOLAR' %}selected{% endif %}>Solar</option>
+                    </select>
+                </div>
+                
+                <div class="filtro-group">
+                    <label for="fecha_inicio">Fecha Inicio:</label>
+                    <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio }}">
+                </div>
+                
+                <div class="filtro-group">
+                    <label for="fecha_fin">Fecha Fin:</label>
+                    <input type="date" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin }}">
+                </div>
+                
+                <div class="filtro-group">
+                    <label for="por_pagina">Items por página:</label>
+                    <select id="por_pagina" name="por_pagina">
+                        <option value="5" {% if por_pagina == 5 %}selected{% endif %}>5</option>
+                        <option value="10" {% if por_pagina == 10 %}selected{% endif %}>10</option>
+                        <option value="20" {% if por_pagina == 20 %}selected{% endif %}>20</option>
+                        <option value="50" {% if por_pagina == 50 %}selected{% endif %}>50</option>
+                    </select>
+                </div>
+                
+                <div class="filtro-actions">
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                    <a href="{{ url_for('historial') }}" class="btn btn-secondary">Limpiar</a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {% if calculos.items %}
+    <div class="table-container">
+        <form id="form-eliminar-seleccionados" method="POST" action="{{ url_for('eliminar_calculos_seleccionados') }}">
+            <table class="historial-table">
+                <thead>
+                    <tr>
+                        <th>
+                            <input type="checkbox" id="seleccionar-todos" title="Seleccionar todos">
+                        </th>
+                        <th>Fecha y Hora</th>
+                        <th>Modo</th>
+                        <th>Temperatura</th>
+                        <th>Humedad Inicial</th>
+                        <th>Humedad Final</th>
+                        <th>Peso (qq)</th>
+                        <th>Tiempo Total</th>
+                        <th>Agua Evaporada</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+            <tbody>
+                {% for calculo in calculos.items %}
+                <tr>
+                    <td>
+                        <input type="checkbox" name="seleccionados" value="{{ calculo.id }}" class="checkbox-seleccion">
+                    </td>
+                    <td>{{ calculo.fecha_hora.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td>
+                        <span class="badge badge-{{ 'industrial' if calculo.modo == 'INDUSTRIAL' else 'solar' }}">
+                            {{ calculo.modo }}
+                        </span>
+                    </td>
+                    <td>{{ "%.1f"|format(calculo.temperatura_efectiva) }}°C</td>
+                    <td>{{ "%.1f"|format(calculo.humedad_inicial) }}%</td>
+                    <td>{{ "%.1f"|format(calculo.humedad_final) }}%</td>
+                    <td>{{ "%.1f"|format(calculo.peso_quintales) }}</td>
+                    <td>
+                        {% if calculo.modo == 'INDUSTRIAL' %}
+                            {{ "%.1f"|format(calculo.tiempo_total_horas) }}h
+                        {% else %}
+                            {{ "%.1f"|format(calculo.tiempo_total_horas / 8) }}d
+                        {% endif %}
+                    </td>
+                    <td>{{ "%.1f"|format(calculo.agua_evaporada_litros) }}L</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-info" onclick="mostrarDetalles({{ calculo.id }})">Ver</button>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="confirmarEliminarCalculo({{ calculo.id }})">Eliminar</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </form>
+    </div>
+
+    <!-- Paginación -->
+    {% if calculos.pages > 1 %}
+    <div class="pagination">
+        {% if calculos.has_prev %}
+            <a href="{{ url_for('historial', pagina=calculos.prev_num, modo=modo_filtro, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin, por_pagina=por_pagina) }}" class="btn btn-secondary">« Anterior</a>
+        {% endif %}
+        
+        <span class="pagination-info">
+            Página {{ calculos.page }} de {{ calculos.pages }} ({{ calculos.total }} total)
+        </span>
+        
+        {% if calculos.has_next %}
+            <a href="{{ url_for('historial', pagina=calculos.next_num, modo=modo_filtro, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin, por_pagina=por_pagina) }}" class="btn btn-secondary">Siguiente »</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+{% else %}
+    <div class="empty-state">
+        <h3>No hay cálculos registrados</h3>
+        <p>Aún no se ha realizado ningún cálculo en el sistema.</p>
+        <a href="{{ url_for('index') }}" class="btn btn-primary">Realizar Primer Cálculo</a>
+    </div>
+{% endif %}
+</div>
+
+<!-- Modal para mostrar detalles -->
+<div id="detallesModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Detalles del Cálculo</h3>
+            <span class="close" onclick="cerrarModal()">&times;</span>
+        </div>
+        <div class="modal-body" id="detallesContenido">
+            <!-- Los detalles se cargarán aquí mediante JavaScript -->
+        </div>
+    </div>
+</div>
+
+<script>
+// Función para mostrar detalles de un cálculo
+function mostrarDetalles(id) {
+    fetch(`/api/calculo/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            let html = `
+                <div class="detalles-grid">
+                    <div class="detalles-section">
+                        <h4>Información General</h4>
+                        <p><strong>ID:</strong> ${data.id}</p>
+                        <p><strong>Fecha:</strong> ${data.fecha_hora}</p>
+                        <p><strong>Modo:</strong> ${data.modo}</p>
+                        <p><strong>IP:</strong> ${data.ip_address || 'N/A'}</p>
+                    </div>
+                    
+                    <div class="detalles-section">
+                        <h4>Parámetros de Entrada</h4>
+                        <p><strong>Temperatura Aire:</strong> ${data.temperatura_aire}°C</p>
+                        <p><strong>Superficie:</strong> ${data.superficie_tipo || 'N/A'}</p>
+                        <p><strong>Humedad Inicial:</strong> ${data.humedad_inicial}%</p>
+                        <p><strong>Humedad Final:</strong> ${data.humedad_final}%</p>
+                        <p><strong>Peso:</strong> ${data.peso_quintales} qq</p>
+                        <p><strong>Capacidad:</strong> ${data.capacidad_maxima} qq</p>
+                    </div>
+                    
+                    <div class="detalles-section">
+                        <h4>Parámetros Calculados</h4>
+                        <p><strong>Temperatura Efectiva:</strong> ${data.temperatura_efectiva}°C</p>
+                        <p><strong>Constante k:</strong> ${data.constante_k}</p>
+                        <p><strong>Constante n:</strong> ${data.constante_n}</p>
+                        <p><strong>Tiempo Base:</strong> ${data.tiempo_base_horas} horas</p>
+                        <p><strong>Factor Penalización:</strong> ${data.factor_penalizacion}</p>
+                    </div>
+                    
+                    <div class="detalles-section">
+                        <h4>Resultados</h4>
+                        <p><strong>Tiempo Total:</strong> ${data.tiempo_total_horas} horas</p>
+                        <p><strong>Peso Inicial:</strong> ${data.peso_inicial_kg} kg</p>
+                        <p><strong>Peso Final:</strong> ${data.peso_final_kg} kg</p>
+                        <p><strong>Agua Evaporada:</strong> ${data.agua_evaporada_litros} L</p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('detallesContenido').innerHTML = html;
+            document.getElementById('detallesModal').style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            mostrarAlerta('Error', 'Error al cargar los detalles del cálculo', 'error');
+        });
+}
+
+function cerrarModal() {
+    document.getElementById('detallesModal').style.display = 'none';
+}
+
+// Cerrar modal al hacer clic fuera de él
+window.onclick = function(event) {
+    const modal = document.getElementById('detallesModal');
+    if (event.target == modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Funcionalidad de selección múltiple
+document.addEventListener('DOMContentLoaded', function() {
+    const seleccionarTodos = document.getElementById('seleccionar-todos');
+    const checkboxes = document.querySelectorAll('.checkbox-seleccion');
+    const btnEliminarSeleccionados = document.getElementById('btn-eliminar-seleccionados');
+    const formEliminarSeleccionados = document.getElementById('form-eliminar-seleccionados');
+    
+    // Función para actualizar visibilidad del botón eliminar
+    function actualizarBotonEliminar() {
+        const checkboxesSeleccionados = document.querySelectorAll('.checkbox-seleccion:checked');
+        if (checkboxesSeleccionados.length > 0) {
+            btnEliminarSeleccionados.style.display = 'inline-block';
+        } else {
+            btnEliminarSeleccionados.style.display = 'none';
+        }
+    }
+    
+    // Evento para seleccionar/deseleccionar todos
+    if (seleccionarTodos) {
+        seleccionarTodos.addEventListener('change', function() {
+            checkboxes.forEach(function(checkbox) {
+                checkbox.checked = seleccionarTodos.checked;
+            });
+            actualizarBotonEliminar();
+        });
+    }
+    
+    // Evento para cada checkbox individual
+    checkboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', actualizarBotonEliminar);
+    });
+    
+    // Evento para el botón de eliminar seleccionados
+    if (btnEliminarSeleccionados) {
+        btnEliminarSeleccionados.addEventListener('click', function() {
+            mostrarConfirmacion('Confirmar Eliminación', '¿Está seguro de eliminar los cálculos seleccionados?', function() {
+                formEliminarSeleccionados.submit();
+            });
+        });
+    }
+});
+
+// Función para confirmar eliminación de un cálculo individual
+function confirmarEliminarCalculo(id) {
+    mostrarConfirmacion('Confirmar Eliminación', '¿Está seguro de eliminar este cálculo?', function() {
+        // Crear un formulario dinámico y enviarlo
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/eliminar/calculo/${id}`;
+        document.body.appendChild(form);
+        form.submit();
+    });
+}
+</script>
+
+<style>
+.historial-container {
+    background: white;
+    border-radius: 10px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.historial-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.historial-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+.historial-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+}
+
+.historial-table th,
+.historial-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.historial-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #8B4513;
+}
+
+.historial-table tr:hover {
+    background: #f8f9fa;
+}
+
+.badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.badge-industrial {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.badge-solar {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.pagination-info {
+    font-weight: 600;
+    color: #666;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #666;
+}
+
+.empty-state h3 {
+    margin-bottom: 1rem;
+    color: #8B4513;
+}
+
+/* Filtros */
+.filtros-container {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    border-left: 4px solid #8B4513;
+}
+
+.filtros-container h3 {
+    color: #8B4513;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.filtros-form {
+    margin: 0;
+}
+
+.filtros-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    align-items: end;
+}
+
+.filtro-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.filtro-group label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.filtro-group select,
+.filtro-group input[type="date"] {
+    padding: 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.filtro-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: end;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    background: #8B4513;
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 10px 10px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+}
+
+.close {
+    color: white;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    opacity: 0.7;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.detalles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.detalles-section {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #8B4513;
+}
+
+.detalles-section h4 {
+    color: #8B4513;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.detaljes-section p {
+    margin-bottom: 0.5rem;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+}
+
+@media (max-width: 768px) {
+    .historial-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .historial-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .filtros-row {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .filtro-actions {
+        justify-content: center;
+        margin-top: 1rem;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 10% auto;
+    }
+    
+    .detalles-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

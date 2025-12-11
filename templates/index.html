@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Formulario de Datos - Sistema de Secado de Cacao{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2>Configuración del Proceso de Secado</h2>
+    
+    <form method="POST" action="{{ url_for('calcular') }}">
+        <!-- Método de Secado -->
+        <div class="form-group">
+            <label for="modo">Método de Secado:</label>
+            <div class="radio-group">
+                <div class="radio-option">
+                    <input type="radio" id="modo1" name="modo" value="1" checked>
+                    <label for="modo1">Secadora Industrial (Gas/Leña)</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="modo2" name="modo" value="2">
+                    <label for="modo2">Secado al Aire Libre (Solar)</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuración Industrial -->
+        <div id="config-industrial" class="config-section">
+            <h3>Configuración Industrial</h3>
+            <div class="form-group">
+                <label for="temp_aire_industrial">Temperatura del Horno (°C):</label>
+                <input type="number" id="temp_aire_industrial" name="temp_aire" value="65" min="40" max="100" step="0.1">
+            </div>
+            <div class="form-group">
+                <label for="capacidad_max_industrial">Capacidad Máxima del Horno (Quintales):</label>
+                <input type="number" id="capacidad_max_industrial" name="capacidad_max" value="10" min="0.1" step="0.1">
+            </div>
+        </div>
+
+        <!-- Configuración Solar -->
+        <div id="config-solar" class="config-section" style="display: none;">
+            <h3>Configuración Solar</h3>
+            <div class="form-group">
+                <label for="superficie">Tipo de Superficie:</label>
+                <select id="superficie" name="sel_superficie">
+                    <option value="1">Cemento / Hormigón</option>
+                    <option value="2">Plástico Negro / Lona</option>
+                    <option value="3" selected>Tendal de Caña / Malla / Madera</option>
+                    <option value="4">Tierra / Suelo directo</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="temp_aire_solar">Temperatura Ambiente Promedio (°C):</label>
+                <input type="number" id="temp_aire_solar" name="temp_aire_solar" value="30" min="15" max="45" step="0.1">
+            </div>
+            <div class="form-group">
+                <label for="capacidad_max_solar">Capacidad Ideal del Tendal (Quintales):</label>
+                <input type="number" id="capacidad_max_solar" name="capacidad_max" value="10" min="0.1" step="0.1">
+            </div>
+        </div>
+
+        <!-- Datos de Carga -->
+        <div class="form-section">
+            <h3>Datos de Carga</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="h_inicial">Humedad Inicial (%):</label>
+                    <input type="number" id="h_inicial" name="h_inicial" value="60" min="0" max="100" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label for="h_final">Humedad Objetivo (%):</label>
+                    <input type="number" id="h_final" name="h_final" value="7" min="0" max="100" step="0.1">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="peso_quintales">Peso a Secar (Quintales):</label>
+                <input type="number" id="peso_quintales" name="peso_quintales" value="10" min="0.1" step="0.1">
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Calcular Tiempo de Secado</button>
+            <button type="reset" class="btn btn-secondary">Restablecer Valores</button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Mostrar/ocultar configuración según el método seleccionado
+document.addEventListener('DOMContentLoaded', function() {
+    const modoRadios = document.querySelectorAll('input[name="modo"]');
+    const configIndustrial = document.getElementById('config-industrial');
+    const configSolar = document.getElementById('config-solar');
+    
+    function toggleConfig() {
+        if (document.getElementById('modo1').checked) {
+            configIndustrial.style.display = 'block';
+            configSolar.style.display = 'none';
+        } else {
+            configIndustrial.style.display = 'none';
+            configSolar.style.display = 'block';
+        }
+    }
+    
+    modoRadios.forEach(radio => {
+        radio.addEventListener('change', toggleConfig);
+    });
+    
+    // Estado inicial
+    toggleConfig();
+});
+</script>
+{% endblock %}
