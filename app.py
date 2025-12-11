@@ -1,8 +1,13 @@
-from flask import Flask, render_template, request, flash, redirect, url_for, jsonify
+from flask import Flask, render_template, request, flash, redirect, url_for, jsonify, session
 from calculos_secado import simular_secado, validar_entradas, obtener_ajuste_superficie
 from models import db, CalculoSecado, RegistroError, ConfiguracionSistema, init_db
 from configuracion import obtener_configuracion
 from database_config import auto_configure_app
+from auth_utils import (
+    requiere_autenticacion_config, verificar_password_configuracion,
+    crear_sesion_config, cerrar_sesion_config, establecer_password_configuracion,
+    existe_password_configuracion, validar_fortaleza_password
+)
 from datetime import datetime, timedelta
 import json
 
@@ -169,13 +174,54 @@ def limpiar_errores():
     return redirect(url_for('ver_errores'))
 
 @app.route('/configuracion')
+@requiere_autenticacion_config
 def configuracion():
-    """Vista para gestionar la configuración del sistema"""
+    """Vista para gestionar la configuración del sistema (protegida)"""
     configuraciones = ConfiguracionSistema.query.all()
-    return render_template('configuracion.html', configuraciones=configuraciones)
+    return render_template('configuracion.html', configuraciones=configuraciones,
+                         autenticado=session.get('config_authenticated', False))
+
+@app.route('/login-config')
+def login_config():
+    """Vista para autenticarse y acceder a la configuración"""
+    # Si ya está autenticado, redirigir a configuración
+    if session.get('config_authenticated'):
+        return redirect(url_for('configuracion'))
+    
+    return render_template('login_config.html')
+
+@app.route('/verificar-login-config', methods=['POST'])
+def verificar_login_config():
+    """Verifica las credenciales para acceder a la configuración"""
+    password = request.form.get('password', '')
+    
+    if not password:
+        flash('Por favor ingrese una contraseña', 'danger')
+        return redirect(url_for('login_config'))
+    
+    # Verificar si existe contraseña configurada
+    if not existe_password_configuracion():
+        flash('No hay contraseña configurada. Contacte al administrador', 'danger')
+        return redirect(url_for('login_config'))
+    
+    # Verificar contraseña
+    if verificar_password_configuracion(password):
+        crear_sesion_config()
+        flash('Acceso concedido correctamente', 'success')
+        return redirect(url_for('configuracion'))
+    else:
+        flash('Contraseña incorrecta. Por favor intente nuevamente', 'danger')
+        return redirect(url_for('login_config'))
+
+@app.route('/logout-config')
+def logout_config():
+    """Cierra la sesión de configuración"""
+    cerrar_sesion_config()
+    return redirect(url_for('index'))
 
 
 @app.route('/guardar/configuracion', methods=['POST'])
+@requiere_autenticacion_config
 def guardar_configuracion():
     """Guarda la configuración del sistema"""
     claves = request.form.getlist('clave')
@@ -205,6 +251,47 @@ def guardar_configuracion():
         flash('Error al guardar la configuración', 'danger')
     
     return redirect(url_for('configuracion'))
+
+@app.route('/cambiar-password-config', methods=['GET', 'POST'])
+@requiere_autenticacion_config
+def cambiar_password_config():
+    """Cambia la contraseña de acceso a la configuración"""
+    if request.method == 'GET':
+        return render_template('cambiar_password.html')
+    
+    # Procesar formulario POST
+    password_actual = request.form.get('password_actual', '')
+    password_nuevo = request.form.get('password_nuevo', '')
+    password_confirmar = request.form.get('password_confirmar', '')
+    
+    # Validaciones
+    if not password_actual or not password_nuevo or not password_confirmar:
+        flash('Todos los campos son obligatorios', 'danger')
+        return render_template('cambiar_password.html')
+    
+    # Verificar contraseña actual
+    if not verificar_password_configuracion(password_actual):
+        flash('La contraseña actual es incorrecta', 'danger')
+        return render_template('cambiar_password.html')
+    
+    # Validar que las nuevas contraseñas coincidan
+    if password_nuevo != password_confirmar:
+        flash('Las nuevas contraseñas no coinciden', 'danger')
+        return render_template('cambiar_password.html')
+    
+    # Validar fortaleza de la nueva contraseña
+    es_valida, mensaje = validar_fortaleza_password(password_nuevo)
+    if not es_valida:
+        flash(mensaje, 'danger')
+        return render_template('cambiar_password.html')
+    
+    # Establecer nueva contraseña
+    if establecer_password_configuracion(password_nuevo):
+        flash('Contraseña cambiada correctamente', 'success')
+        return redirect(url_for('configuracion'))
+    else:
+        flash('Error al cambiar la contraseña. Por favor intente nuevamente', 'danger')
+        return render_template('cambiar_password.html')
 
 @app.route('/calcular', methods=['POST'])
 def calcular():

@@ -7,6 +7,14 @@
     <div class="config-header">
         <h2>Configuración del Sistema</h2>
         <div class="config-actions">
+            {% if autenticado %}
+                <a href="{{ url_for('cambiar_password_config') }}" class="btn btn-secondary">
+                    🔐 Cambiar Contraseña
+                </a>
+                <a href="{{ url_for('logout_config') }}" class="btn btn-warning">
+                    🚪 Cerrar Sesión
+                </a>
+            {% endif %}
             <a href="{{ url_for('index') }}" class="btn btn-primary">Volver al Inicio</a>
         </div>
     </div>
@@ -109,6 +117,11 @@
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">Guardar Configuración</button>
             <button type="reset" class="btn btn-secondary">Restablecer Valores</button>
+            {% if autenticado %}
+                <a href="{{ url_for('cambiar_password_config') }}" class="btn btn-info">
+                    🔐 Cambiar Contraseña
+                </a>
+            {% endif %}
         </div>
     </form>
 </div>

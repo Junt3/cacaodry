@@ -123,11 +123,24 @@ La aplicación está configurada para conectarse a PostgreSQL con las siguientes
 - Usuario: postgres
 - Contraseña: juniher2004
 
-Para cambiar estas credenciales, modifica la línea de conexión en los archivos:
-- `app.py`
-- `init_db.py`
-- `migrate.py`
-- `init_postgresql.py`
+## Inicialización de la Base de Datos
+
+1. **Ejecutar el script de inicialización**:
+   ```bash
+   python init_postgresql.py
+   ```
+
+2. **Verificar la inicialización**:
+   ```bash
+   python test_postgresql.py
+   ```
+
+## Ejecución de la Aplicación
+
+1. **Iniciar la aplicación**:
+   ```bash
+   python app.py
+   ```
 
 ### Modelos de Datos
 
@@ -147,7 +160,7 @@ Para cambiar estas credenciales, modifica la línea de conexión en los archivos
 #### Para SQLite:
 ```bash
 # Inicializar base de datos por primera vez
-python init_db.py
+python init_postgresql.py
 
 # Aplicar migraciones pendientes
 python migrate.py migrate

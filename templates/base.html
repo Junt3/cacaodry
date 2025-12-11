@@ -15,7 +15,11 @@
                 <a href="{{ url_for('index') }}" class="nav-link">Inicio</a>
                 <a href="{{ url_for('historial') }}" class="nav-link">Historial</a>
                 <a href="{{ url_for('ver_errores') }}" class="nav-link">Errores</a>
-                <a href="{{ url_for('configuracion') }}" class="nav-link">Configuración</a>
+                {% if session.config_authenticated %}
+                    <a href="{{ url_for('configuracion') }}" class="nav-link nav-protected">🔐 Configuración</a>
+                {% else %}
+                    <a href="{{ url_for('login_config') }}" class="nav-link">🔒 Configuración</a>
+                {% endif %}
             </nav>
         </div>
     </header>
@@ -222,6 +226,43 @@
 
         .btn:hover {
             opacity: 0.9;
+        }
+
+        .nav-protected {
+            background: rgba(139, 69, 19, 0.1);
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .main-nav {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-link {
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            color: #8B4513;
+            border-radius: 4px;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            background: rgba(139, 69, 19, 0.1);
+            color: #6d3410;
+        }
+
+        @media (max-width: 768px) {
+            .main-nav {
+                justify-content: center;
+            }
+            
+            .nav-link {
+                font-size: 0.9rem;
+                padding: 0.4rem 0.8rem;
+            }
         }
     </style>
 </body>
