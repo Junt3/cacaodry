@@ -8,11 +8,12 @@
 
 ```bash
 # 1. Clonar el repositorio
-git clone <repositorio-url>
+git clone https://github.com/Junt3/cacaodry.git
 cd cacaodry
 
-# 2. Crear entorno virtual
+# 2. Crear entorno virtual, hacer 'sudo apt install python3.13-venv' si falla
 python -m venv venv
+
 
 # 3. Activar entorno virtual
 # Windows:
@@ -30,7 +31,7 @@ pip install -r requirements.txt
 
 ```bash
 # 1. Crear base de datos en PostgreSQL
-createdb cacaodry
+CREATE TABLE IF NOT EXISTS 'cacaodry'
 
 # 2. Inicializar base de datos
 python db_manager.py init --db-type=postgresql
@@ -39,19 +40,6 @@ python db_manager.py init --db-type=postgresql
 python db_manager.py seed --password
 
 # 4. Verificar instalación
-python db_manager.py test
-```
-
-### Opción 2: SQLite (Para desarrollo/pruebas)
-
-```bash
-# 1. Inicializar base de datos
-python db_manager.py init --db-type=sqlite
-
-# 2. Establecer contraseña de configuración
-python db_manager.py seed --password
-
-# 3. Verificar instalación
 python db_manager.py test
 ```
 
