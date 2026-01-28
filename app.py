@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, flash, redirect, url_for, jsonify, session
+from flask_socketio import SocketIO
 from calculos_secado import simular_secado, validar_entradas, obtener_ajuste_superficie
 from models import db, CalculoSecado, RegistroError, ConfiguracionSistema, init_db
 from configuracion import obtener_configuracion
@@ -10,15 +11,27 @@ from auth_utils import (
 )
 from datetime import datetime, timedelta
 import json
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.secret_key = 'cacao_secado_2023'  # Clave secreta para mensajes flash
+
+# Initialize SocketIO
+socketio = SocketIO(app, cors_allowed_origins="*", logger=True, engineio_logger=True, async_mode='threading')
 
 # Configuración automática de la base de datos (PostgreSQL por defecto)
 auto_configure_app(app)
 
 # Inicializar la base de datos
 init_db(app)
+
+# Import and register SSH terminal
+from ssh_terminal import create_simple_ssh_namespace
+create_simple_ssh_namespace(socketio)
 
 @app.route('/')
 def index():
@@ -178,8 +191,10 @@ def limpiar_errores():
 def configuracion():
     """Vista para gestionar la configuración del sistema (protegida)"""
     configuraciones = ConfiguracionSistema.query.all()
-    return render_template('configuracion.html', configuraciones=configuraciones,
-                         autenticado=session.get('config_authenticated', False))
+    return render_template('configuracion.html',
+                         configuraciones=configuraciones,
+                         autenticado=session.get('config_authenticated', False),
+                         ssh_tab=True)
 
 @app.route('/login-config')
 def login_config():
@@ -442,5 +457,5 @@ def server_error(e):
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    # Ejecutar la aplicación en modo debug para desarrollo
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Ejecutar la aplicación con SocketIO en modo debug para desarrollo
+    socketio.run(app, debug=True, host='0.0.0.0', port=5000)

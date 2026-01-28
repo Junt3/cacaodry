@@ -41,44 +41,44 @@ class DatabaseManager:
     
     def init_database(self, tables_only=False):
         """Inicializa la base de datos"""
-        print(f"🐘 Inicializando base de datos {self.db_type.upper()} del Sistema de Secado de Cacao...")
+        print(f"[INIT] Inicializando base de datos {self.db_type.upper()} del Sistema de Secado de Cacao...")
         
         with self.app.app_context():
             try:
                 # Crear todas las tablas
                 db.create_all()
-                print("✓ Tablas creadas exitosamente")
+                print("[OK] Tablas creadas exitosamente")
                 
                 if not tables_only:
                     # Inicializar configuración por defecto
                     self.seed_manager.load_default_config()
-                    print("✓ Configuración por defecto cargada")
+                    print("[OK] Configuración por defecto cargada")
                 
                 # Confirmar cambios
                 db.session.commit()
-                print("✓ Cambios guardados exitosamente")
+                print("[OK] Cambios guardados exitosamente")
                 
                 # Mostrar resumen
                 self._show_database_summary()
                 
-                print(f"\n✅ Base de datos {self.db_type.upper()} inicializada correctamente!")
+                print(f"\n[SUCCESS] Base de datos {self.db_type.upper()} inicializada correctamente!")
                 return True
                 
             except Exception as e:
                 db.session.rollback()
-                print(f"❌ Error al inicializar la base de datos: {str(e)}")
+                print(f"[ERROR] Error al inicializar la base de datos: {str(e)}")
                 return False
     
     def reset_database(self, keep_config=False):
         """Resetea la base de datos"""
-        print(f"⚠️  ADVERTENCIA: Esto eliminará todos los datos de la base de datos {self.db_type.upper()}")
+        print(f"[WARNING] ADVERTENCIA: Esto eliminará todos los datos de la base de datos {self.db_type.upper()}")
         
         if keep_config:
             print("Se mantendrá la configuración del sistema")
         
         confirmation = input("¿Está seguro que desea continuar? (s/N): ")
         if confirmation.lower() != 's':
-            print("❌ Operación cancelada")
+            print("[CANCEL] Operación cancelada")
             return False
         
         with self.app.app_context():
@@ -90,11 +90,11 @@ class DatabaseManager:
                 
                 # Eliminar todas las tablas
                 db.drop_all()
-                print("✓ Tablas eliminadas")
+                print("[OK] Tablas eliminadas")
                 
                 # Recrear tablas
                 db.create_all()
-                print("✓ Tablas recreadas")
+                print("[OK] Tablas recreadas")
                 
                 # Restaurar configuración si se solicita
                 if keep_config:
@@ -105,20 +105,20 @@ class DatabaseManager:
                             descripcion=config.descripcion
                         )
                         db.session.add(new_config)
-                    print("✓ Configuración restaurada")
+                    print("[OK] Configuración restaurada")
                 
                 db.session.commit()
-                print("✅ Base de datos reseteada correctamente")
+                print("[SUCCESS] Base de datos reseteada correctamente")
                 return True
                 
             except Exception as e:
                 db.session.rollback()
-                print(f"❌ Error al resetear la base de datos: {str(e)}")
+                print(f"[ERROR] Error al resetear la base de datos: {str(e)}")
                 return False
     
     def show_info(self, detailed=False):
         """Muestra información de la base de datos"""
-        print(f"📊 Información de la base de datos {self.db_type.upper()}:")
+        print(f"[INFO] Información de la base de datos {self.db_type.upper()}:")
         print("-" * 50)
         
         with self.app.app_context():
@@ -137,12 +137,12 @@ class DatabaseManager:
                 return True
                 
             except Exception as e:
-                print(f"❌ Error al obtener información: {str(e)}")
+                print(f"[ERROR] Error al obtener información: {str(e)}")
                 return False
     
     def _show_database_summary(self):
         """Muestra un resumen de la base de datos"""
-        print("\n📊 Resumen de la base de datos:")
+        print("\n[INFO] Resumen de la base de datos:")
         print(f"   - Cálculos registrados: {CalculoSecado.query.count()}")
         print(f"   - Errores registrados: {RegistroError.query.count()}")
         print(f"   - Configuraciones: {ConfiguracionSistema.query.count()}")
@@ -205,7 +205,7 @@ class MigrationManager:
                 description = module.__doc__.strip() if module.__doc__ else migration_id
                 migrations.append((migration_id, description))
             except Exception as e:
-                print(f"⚠️  Error cargando migración {migration_id}: {str(e)}")
+                print(f"[WARNING] Error cargando migración {migration_id}: {str(e)}")
                 migrations.append((migration_id, f"Error: {str(e)}"))
         
         return migrations
@@ -230,7 +230,7 @@ class MigrationManager:
                 module_path = os.path.join(migrations_dir, f"{migration_id}.py")
                 
                 if not os.path.exists(module_path):
-                    print(f"❌ Archivo de migración no encontrado: {module_path}")
+                    print(f"[ERROR] Archivo de migración no encontrado: {module_path}")
                     return False
                 
                 spec = importlib.util.spec_from_file_location(migration_id, module_path)
@@ -240,7 +240,7 @@ class MigrationManager:
                 if hasattr(module, 'up'):
                     module.up(db)
                 else:
-                    print(f"❌ La migración {migration_id} no tiene función 'up'")
+                    print(f"[ERROR] La migración {migration_id} no tiene función 'up'")
                     return False
                 
                 full_id = f"migration_{migration_id}"
@@ -249,7 +249,7 @@ class MigrationManager:
                 return True
                 
             except Exception as e:
-                print(f"❌ Error aplicando migración {migration_id}: {str(e)}")
+                print(f"[ERROR] Error aplicando migración {migration_id}: {str(e)}")
                 return False
     
     def migrate(self):
@@ -257,24 +257,24 @@ class MigrationManager:
         pending = self.get_pending_migrations()
         
         if not pending:
-            print("✅ No hay migraciones pendientes")
+            print("[SUCCESS] No hay migraciones pendientes")
             return True
         
-        print(f"🔄 Aplicando {len(pending)} migración(es) pendiente(s)...")
+        print(f"[PROCESS] Aplicando {len(pending)} migración(es) pendiente(s)...")
         
         for migration_id, description in pending:
-            print(f"\n📝 Aplicando: {migration_id} - {description}")
+            print(f"\n[PROCESS] Aplicando: {migration_id} - {description}")
             if not self.apply_migration(migration_id, description):
-                print(f"❌ Falló la migración {migration_id}")
+                print(f"[ERROR] Falló la migración {migration_id}")
                 return False
         
-        print("\n✅ Todas las migraciones aplicadas correctamente")
+        print("\n[SUCCESS] Todas las migraciones aplicadas correctamente")
         return True
     
     def rollback(self, migration_id):
         """Revierte una migración específica"""
-        print(f"⚠️  Revertir migración {migration_id}")
-        print("⚠️  ADVERTENCIA: Esta funcionalidad es básica y puede no ser completa")
+        print(f"[WARNING] Revertir migración {migration_id}")
+        print("[WARNING] ADVERTENCIA: Esta funcionalidad es básica y puede no ser completa")
         
         with self.app.app_context():
             try:
@@ -282,7 +282,7 @@ class MigrationManager:
                 module_path = os.path.join(migrations_dir, f"{migration_id}.py")
                 
                 if not os.path.exists(module_path):
-                    print(f"❌ Archivo de migración no encontrado: {module_path}")
+                    print(f"[ERROR] Archivo de migración no encontrado: {module_path}")
                     return False
                 
                 spec = importlib.util.spec_from_file_location(migration_id, module_path)
@@ -292,43 +292,43 @@ class MigrationManager:
                 if hasattr(module, 'down'):
                     module.down(db)
                 else:
-                    print(f"⚠️  La migración {migration_id} no tiene función 'down'")
+                    print(f"[WARNING] La migración {migration_id} no tiene función 'down'")
                 
                 full_id = f"migration_{migration_id}"
                 if full_id in self.migrations:
                     del self.migrations[full_id]
                     self._save_migrations()
-                    print(f"✓ Migración {migration_id} eliminada del registro")
+                    print(f"[OK] Migración {migration_id} eliminada del registro")
                 else:
-                    print(f"❌ Migración {migration_id} no encontrada en el registro")
+                    print(f"[ERROR] Migración {migration_id} no encontrada en el registro")
                     return False
                 
                 return True
                 
             except Exception as e:
-                print(f"❌ Error revirtiendo migración: {str(e)}")
+                print(f"[ERROR] Error revirtiendo migración: {str(e)}")
                 return False
     
     def show_migration_status(self):
         """Muestra el estado de las migraciones"""
-        print("📊 Estado de las migraciones:")
+        print("[INFO] Estado de las migraciones:")
         print("-" * 50)
         
         pending = self.get_pending_migrations()
         
         if not self.migrations:
-            print("❌ No hay registro de migraciones aplicadas")
+            print("[ERROR] No hay registro de migraciones aplicadas")
         else:
-            print("✅ Migraciones aplicadas:")
+            print("[SUCCESS] Migraciones aplicadas:")
             for migration_id, info in self.migrations.items():
                 print(f"   - {migration_id}: {info['name']} ({info['applied_at']})")
         
         if pending:
-            print("\n⏳ Migraciones pendientes:")
+            print("\n[PENDING] Migraciones pendientes:")
             for migration_id, description in pending:
                 print(f"   - {migration_id}: {description}")
         else:
-            print("\n✅ No hay migraciones pendientes")
+            print("\n[SUCCESS] No hay migraciones pendientes")
 
 
 class SeedManager:
@@ -407,7 +407,7 @@ class SeedManager:
                         descripcion=config_data['descripcion']
                     )
                     db.session.add(config)
-                    print(f"✓ Configuración agregada: {config_data['clave']}")
+                    print(f"[OK] Configuración agregada: {config_data['clave']}")
                 else:
                     print(f"- Configuración ya existe: {config_data['clave']}")
     
@@ -415,7 +415,7 @@ class SeedManager:
         """Establece la contraseña de configuración"""
         with self.app.app_context():
             if existe_password_configuracion() and not force:
-                print("⚠️  Ya existe una contraseña configurada.")
+                print("[WARNING] Ya existe una contraseña configurada.")
                 print("Si desea cambiarla, use la opción 'Cambiar Contraseña' en la configuración.")
                 return False
             
@@ -428,30 +428,30 @@ class SeedManager:
                 password = getpass.getpass("Nueva contraseña: ")
                 
                 if len(password) < 8:
-                    print("❌ La contraseña debe tener al menos 8 caracteres")
+                    print("[ERROR] La contraseña debe tener al menos 8 caracteres")
                     continue
                 
                 if not any(c.isdigit() for c in password):
-                    print("❌ La contraseña debe contener al menos un número")
+                    print("[ERROR] La contraseña debe contener al menos un número")
                     continue
                 
                 if not any(c.isalpha() for c in password):
-                    print("❌ La contraseña debe contener al menos una letra")
+                    print("[ERROR] La contraseña debe contener al menos una letra")
                     continue
                 
                 password_confirm = getpass.getpass("Confirme la contraseña: ")
                 
                 if password != password_confirm:
-                    print("❌ Las contraseñas no coinciden")
+                    print("[ERROR] Las contraseñas no coinciden")
                     continue
                 
                 break
             
             if establecer_password_configuracion(password):
-                print("✅ Contraseña establecida correctamente")
+                print("[SUCCESS] Contraseña establecida correctamente")
                 return True
             else:
-                print("❌ Error al establecer la contraseña")
+                print("[ERROR] Error al establecer la contraseña")
                 return False
 
 
@@ -463,20 +463,20 @@ class TestManager:
     
     def test_connection(self):
         """Prueba la conexión a la base de datos"""
-        print("🔍 Probando conexión a la base de datos...")
+        print("[TEST] Probando conexión a la base de datos...")
         
         with self.app.app_context():
             try:
                 db.engine.execute("SELECT 1")
-                print("✅ Conexión exitosa")
+                print("[SUCCESS] Conexión exitosa")
                 return True
             except Exception as e:
-                print(f"❌ Error de conexión: {str(e)}")
+                print(f"[ERROR] Error de conexión: {str(e)}")
                 return False
     
     def test_operations(self):
         """Prueba operaciones básicas de CRUD"""
-        print("\n🔍 Probando operaciones básicas...")
+        print("\n[TEST] Probando operaciones básicas...")
         
         with self.app.app_context():
             try:
@@ -488,14 +488,14 @@ class TestManager:
                 )
                 db.session.add(test_config)
                 db.session.commit()
-                print("✅ Inserción de datos exitosa")
+                print("[SUCCESS] Inserción de datos exitosa")
                 
                 # Probar consulta
                 retrieved = ConfiguracionSistema.query.filter_by(clave='test_connection').first()
                 if retrieved and retrieved.valor == 'db_manager_test':
                     print("✅ Consulta de datos exitosa")
                 else:
-                    print("❌ Error en consulta de datos")
+                    print("[ERROR] Error en consulta de datos")
                     return False
                 
                 # Probar actualización
@@ -503,9 +503,9 @@ class TestManager:
                 db.session.commit()
                 updated = ConfiguracionSistema.query.filter_by(clave='test_connection').first()
                 if updated and updated.valor == 'db_manager_test_updated':
-                    print("✅ Actualización de datos exitosa")
+                    print("[SUCCESS] Actualización de datos exitosa")
                 else:
-                    print("❌ Error en actualización de datos")
+                    print("[ERROR] Error en actualización de datos")
                     return False
                 
                 # Probar eliminación
@@ -513,19 +513,19 @@ class TestManager:
                 db.session.commit()
                 deleted = ConfiguracionSistema.query.filter_by(clave='test_connection').first()
                 if deleted is None:
-                    print("✅ Eliminación de datos exitosa")
+                    print("[SUCCESS] Eliminación de datos exitosa")
                 else:
-                    print("❌ Error en eliminación de datos")
+                    print("[ERROR] Error en eliminación de datos")
                     return False
                 
                 return True
             except Exception as e:
-                print(f"❌ Error en operaciones CRUD: {str(e)}")
+                print(f"[ERROR] Error en operaciones CRUD: {str(e)}")
                 return False
     
     def run_all_tests(self):
         """Ejecuta todas las pruebas"""
-        print("🧪 Iniciando pruebas de base de datos...")
+        print("[TEST] Iniciando pruebas de base de datos...")
         print("=" * 60)
         
         tests = [
@@ -537,15 +537,15 @@ class TestManager:
         total = len(tests)
         
         for test_name, test_func in tests:
-            print(f"\n📋 Ejecutando prueba: {test_name}")
+            print(f"\n[TEST] Ejecutando prueba: {test_name}")
             if test_func():
                 passed += 1
-                print(f"✅ Prueba '{test_name}' superada")
+                print(f"[SUCCESS] Prueba '{test_name}' superada")
             else:
-                print(f"❌ Prueba '{test_name}' fallida")
+                print(f"[ERROR] Prueba '{test_name}' fallida")
         
         print("\n" + "=" * 60)
-        print(f"📊 Resultados: {passed}/{total} pruebas superadas")
+        print(f"[RESULT] Resultados: {passed}/{total} pruebas superadas")
         
         return passed == total
 
@@ -611,7 +611,7 @@ Ejemplos:
             success = True
         elif args.subcommand == 'list':
             migrations = db_manager.migration_manager.get_available_migrations()
-            print("📋 Migraciones disponibles:")
+            print("[INFO] Migraciones disponibles:")
             for migration_id, description in migrations:
                 print(f"   - {migration_id}: {description}")
             success = True
@@ -619,7 +619,7 @@ Ejemplos:
             migration_id = sys.argv[3]
             success = db_manager.migration_manager.rollback(migration_id)
         elif args.subcommand == 'rollback':
-            print("❌ Se requiere el ID de la migración para revertir")
+            print("[ERROR] Se requiere el ID de la migración para revertir")
             print("Uso: python db_manager.py migrate rollback <migration_id>")
             success = False
         else:
@@ -655,7 +655,7 @@ Ejemplos:
         success = db_manager.show_info(detailed=args.detailed)
     
     else:
-        print(f"❌ Comando desconocido: {args.command}")
+        print(f"[ERROR] Comando desconocido: {args.command}")
         success = False
     
     sys.exit(0 if success else 1)

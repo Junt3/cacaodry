@@ -2,6 +2,14 @@
 
 {% block title %}Configuración del Sistema - Sistema de Secado de Cacao{% endblock %}
 
+{% block head %}
+<!-- Load xterm.js and addons from CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+<script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+{% endblock %}
+
 {% block content %}
 <div class="config-container">
     <div class="config-header">
@@ -19,115 +27,219 @@
         </div>
     </div>
 
-    <form method="POST" action="{{ url_for('guardar_configuracion') }}">
-        <div class="config-sections">
-            <!-- <div class="config-section">
-                <h3>Configuración General</h3>
-                <div class="form-group">
-                    <label for="version_sistema">Versión del Sistema:</label>
-                    <input type="text" id="version_sistema" name="clave" value="version_sistema" readonly>
-                    <input type="text" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'version_sistema' %}{{ config.valor }}{% endif %}{% endfor %}">
-                    <small class="form-hint">Número de versión actual del sistema</small>
-                </div>
-            </div> -->
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+        <button class="tab-button active" data-tab="parametros">Parámetros</button>
+        <button class="tab-button" data-tab="humedad">Humedad</button>
+        <button class="tab-button" data-tab="visualizacion">Visualización</button>
+        <button class="tab-button" data-tab="economica">Económica</button>
+        <button class="tab-button" data-tab="ssh">SSH Terminal</button>
+    </div>
 
-            <div class="config-section">
-                <h3>Parámetros de Cálculo</h3>
-                <div class="form-group">
-                    <label for="temp_min_industrial">Temperatura Mínima Industrial (°C):</label>
-                    <input type="text" id="temp_min_industrial" name="clave" value="temp_min_industrial" readonly>
-                    <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'temp_min_industrial' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="100" step="0.1">
-                    <small class="form-hint">Temperatura mínima permitida para secado industrial</small>
+    <!-- Tab Contents -->
+    <div class="tab-contents">
+        <!-- Parámetros Tab -->
+        <div id="parametros-tab" class="tab-content active">
+            <form method="POST" action="{{ url_for('guardar_configuracion') }}">
+                <div class="config-sections">
+                    <div class="config-section">
+                        <h3>Parámetros de Cálculo</h3>
+                        <div class="form-group">
+                            <label for="temp_min_industrial">Temperatura Mínima Industrial (°C):</label>
+                            <input type="text" id="temp_min_industrial" name="clave" value="temp_min_industrial" readonly>
+                            <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'temp_min_industrial' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="100" step="0.1">
+                            <small class="form-hint">Temperatura mínima permitida para secado industrial</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="temp_max_industrial">Temperatura Máxima Industrial (°C):</label>
+                            <input type="text" id="temp_max_industrial" name="clave" value="temp_max_industrial" readonly>
+                            <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'temp_max_industrial' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="150" step="0.1">
+                            <small class="form-hint">Temperatura máxima permitida para secado industrial</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="temp_min_solar">Temperatura Mínima Solar (°C):</label>
+                            <input type="text" id="temp_min_solar" name="clave" value="temp_min_solar" readonly>
+                            <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'temp_min_solar' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="50" step="0.1">
+                            <small class="form-hint">Temperatura mínima permitida para secado solar</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="temp_max_solar">Temperatura Máxima Solar (°C):</label>
+                            <input type="text" id="temp_max_solar" name="clave" value="temp_max_solar" readonly>
+                            <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'temp_max_solar' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="60" step="0.1">
+                            <small class="form-hint">Temperatura máxima permitida para secado solar</small>
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="temp_max_industrial">Temperatura Máxima Industrial (°C):</label>
-                    <input type="text" id="temp_max_industrial" name="clave" value="temp_max_industrial" readonly>
-                    <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'temp_max_industrial' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="150" step="0.1">
-                    <small class="form-hint">Temperatura máxima permitida para secado industrial</small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="temp_min_solar">Temperatura Mínima Solar (°C):</label>
-                    <input type="text" id="temp_min_solar" name="clave" value="temp_min_solar" readonly>
-                    <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'temp_min_solar' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="50" step="0.1">
-                    <small class="form-hint">Temperatura mínima permitida para secado solar</small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="temp_max_solar">Temperatura Máxima Solar (°C):</label>
-                    <input type="text" id="temp_max_solar" name="clave" value="temp_max_solar" readonly>
-                    <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'temp_max_solar' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="60" step="0.1">
-                    <small class="form-hint">Temperatura máxima permitida para secado solar</small>
-                </div>
-            </div>
 
-            <div class="config-section">
-                <h3>Parámetros de Humedad</h3>
-                <div class="form-group">
-                    <label for="humedad_min">Humedad Mínima (%):</label>
-                    <input type="text" id="humedad_min" name="clave" value="humedad_min" readonly>
-                    <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'humedad_min' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="100" step="0.1">
-                    <small class="form-hint">Humedad mínima permitida</small>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Guardar Configuración</button>
+                    <button type="reset" class="btn btn-secondary">Restablecer Valores</button>
                 </div>
-                
-                <div class="form-group">
-                    <label for="humedad_max">Humedad Máxima (%):</label>
-                    <input type="text" id="humedad_max" name="clave" value="humedad_max" readonly>
-                    <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'humedad_max' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="100" step="0.1">
-                    <small class="form-hint">Humedad máxima permitida</small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="humedad_advertencia_baja">Umbral Advertencia Baja (%):</label>
-                    <input type="text" id="humedad_advertencia_baja" name="clave" value="humedad_advertencia_baja" readonly>
-                    <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'humedad_advertencia_baja' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="100" step="0.1">
-                    <small class="form-hint">Umbral para advertencia de humedad baja (puede quebrar el grano)</small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="humedad_advertencia_alta">Umbral Advertencia Alta (%):</label>
-                    <input type="text" id="humedad_advertencia_alta" name="clave" value="humedad_advertencia_alta" readonly>
-                    <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'humedad_advertencia_alta' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="100" step="0.1">
-                    <small class="form-hint">Umbral para advertencia de humedad alta (puede generar moho)</small>
-                </div>
-            </div>
+            </form>
+        </div>
 
-            <div class="config-section">
-                <h3>Configuración de Visualización</h3>
-                <div class="form-group">
-                    <label for="items_por_pagina">Items por Página:</label>
-                    <input type="text" id="items_por_pagina" name="clave" value="items_por_pagina" readonly>
-                    <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'items_por_pagina' %}{{ config.valor }}{% endif %}{% endfor %}" min="5" max="100" step="5">
-                    <small class="form-hint">Número de items a mostrar por página en el historial</small>
+        <!-- Humedad Tab -->
+        <div id="humedad-tab" class="tab-content">
+            <form method="POST" action="{{ url_for('guardar_configuracion') }}">
+                <div class="config-sections">
+                    <div class="config-section">
+                        <h3>Parámetros de Humedad</h3>
+                        <div class="form-group">
+                            <label for="humedad_min">Humedad Mínima (%):</label>
+                            <input type="text" id="humedad_min" name="clave" value="humedad_min" readonly>
+                            <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'humedad_min' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="100" step="0.1">
+                            <small class="form-hint">Humedad mínima permitida</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="humedad_max">Humedad Máxima (%):</label>
+                            <input type="text" id="humedad_max" name="clave" value="humedad_max" readonly>
+                            <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'humedad_max' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="100" step="0.1">
+                            <small class="form-hint">Humedad máxima permitida</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="humedad_advertencia_baja">Umbral Advertencia Baja (%):</label>
+                            <input type="text" id="humedad_advertencia_baja" name="clave" value="humedad_advertencia_baja" readonly>
+                            <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'humedad_advertencia_baja' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="100" step="0.1">
+                            <small class="form-hint">Umbral para advertencia de humedad baja (puede quebrar el grano)</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="humedad_advertencia_alta">Umbral Advertencia Alta (%):</label>
+                            <input type="text" id="humedad_advertencia_alta" name="clave" value="humedad_advertencia_alta" readonly>
+                            <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'humedad_advertencia_alta' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="100" step="0.1">
+                            <small class="form-hint">Umbral para advertencia de humedad alta (puede generar moho)</small>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="config-section">
-                <h3>Configuración Económica</h3>
-                <div class="form-group">
-                    <label for="precio_cacao">Precio del Cacao ($/tonelada):</label>
-                    <input type="text" id="precio_cacao" name="clave" value="precio_cacao" readonly>
-                    <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'precio_cacao' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="50000" step="100">
-                    <small class="form-hint">Precio del cacao en dólares por tonelada métrica</small>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Guardar Configuración</button>
+                    <button type="reset" class="btn btn-secondary">Restablecer Valores</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Visualización Tab -->
+        <div id="visualizacion-tab" class="tab-content">
+            <form method="POST" action="{{ url_for('guardar_configuracion') }}">
+                <div class="config-sections">
+                    <div class="config-section">
+                        <h3>Configuración de Visualización</h3>
+                        <div class="form-group">
+                            <label for="items_por_pagina">Items por Página:</label>
+                            <input type="text" id="items_por_pagina" name="clave" value="items_por_pagina" readonly>
+                            <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'items_por_pagina' %}{{ config.valor }}{% endif %}{% endfor %}" min="5" max="100" step="5">
+                            <small class="form-hint">Número de items a mostrar por página en el historial</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Guardar Configuración</button>
+                    <button type="reset" class="btn btn-secondary">Restablecer Valores</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Económica Tab -->
+        <div id="economica-tab" class="tab-content">
+            <form method="POST" action="{{ url_for('guardar_configuracion') }}">
+                <div class="config-sections">
+                    <div class="config-section">
+                        <h3>Configuración Económica</h3>
+                        <div class="form-group">
+                            <label for="precio_cacao">Precio del Cacao ($/tonelada):</label>
+                            <input type="text" id="precio_cacao" name="clave" value="precio_cacao" readonly>
+                            <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'precio_cacao' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="50000" step="100">
+                            <small class="form-hint">Precio del cacao en dólares por tonelada métrica</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Guardar Configuración</button>
+                    <button type="reset" class="btn btn-secondary">Restablecer Valores</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- SSH Terminal Tab -->
+        <div id="ssh-tab" class="tab-content">
+            <div class="ssh-terminal-container">
+                <div class="ssh-connection-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ssh-host">Host:</label>
+                            <input type="text" id="ssh-host" placeholder="server.example.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="ssh-port">Port:</label>
+                            <input type="number" id="ssh-port" value="22" min="1" max="65535">
+                        </div>
+                        <div class="form-group">
+                            <label for="ssh-username">Username:</label>
+                            <input type="text" id="ssh-username" placeholder="username">
+                        </div>
+                        <div class="form-group">
+                            <label for="ssh-password">Password:</label>
+                            <input type="password" id="ssh-password" placeholder="password">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button id="ssh-connect" class="btn btn-primary">Connect</button>
+                        <button id="ssh-disconnect" class="btn btn-secondary" disabled>Disconnect</button>
+                        <span id="ssh-status" class="connection-status">Disconnected</span>
+                    </div>
+                </div>
+                
+                <div class="terminal-wrapper">
+                    <div id="terminal"></div>
+                </div>
+                
+                <div class="command-shortcuts">
+                    <button class="btn btn-sm btn-secondary command-shortcut" data-command="ls -la">List Files</button>
+                    <button class="btn btn-sm btn-secondary command-shortcut" data-command="pwd">Current Dir</button>
+                    <button class="btn btn-sm btn-secondary command-shortcut" data-command="whoami">Who Am I</button>
+                    <button class="btn btn-sm btn-secondary command-shortcut" data-command="df -h">Disk Usage</button>
+                    <button class="btn btn-sm btn-secondary command-shortcut" data-command="free -m">Memory</button>
+                    <button class="btn btn-sm btn-secondary command-shortcut" data-command="top -n 1">Top Processes</button>
+                    <button class="btn btn-sm btn-secondary command-shortcut" data-command="ps aux">All Processes</button>
+                    <button class="btn btn-sm btn-secondary command-shortcut" data-command="netstat -tlnp">Listening Ports</button>
+                    <button class="btn btn-sm btn-secondary command-shortcut" data-command="systemctl status">Service Status</button>
+                    <button class="btn btn-sm btn-secondary command-shortcut" data-command="tail -n 50 /var/log/syslog">Recent Logs</button>
+                    <button class="btn btn-sm btn-secondary command-shortcut" data-command="uname -a">System Info</button>
+                    <button class="btn btn-sm btn-secondary command-shortcut" data-command="date">Date & Time</button>
                 </div>
             </div>
         </div>
-
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Guardar Configuración</button>
-            <button type="reset" class="btn btn-secondary">Restablecer Valores</button>
-            {% if autenticado %}
-                <a href="{{ url_for('cambiar_password_config') }}" class="btn btn-info">
-                    🔐 Cambiar Contraseña
-                </a>
-            {% endif %}
-        </div>
-    </form>
+    </div>
 </div>
 
+<script src="{{ url_for('static', filename='js/ssh_terminal.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Tab switching functionality
+    const tabs = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active class from all tabs and contents
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(tc => tc.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            tab.classList.add('active');
+            const tabId = tab.getAttribute('data-tab');
+            document.getElementById(`${tabId}-tab`).classList.add('active');
+        });
+    });
+    
     // Ocultar los campos de clave que son de solo lectura
     const clavesInputs = document.querySelectorAll('input[name="clave"]');
     clavesInputs.forEach(function(input) {
@@ -135,62 +247,65 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Agregar descripciones como campos ocultos si no existen
-    const form = document.querySelector('form');
-    const valorInputs = document.querySelectorAll('input[name="valor"]');
-    
-    valorInputs.forEach(function(input, index) {
-        const claveInput = clavesInputs[index];
-        if (claveInput) {
-            const descripcionInput = document.createElement('input');
-            descripcionInput.type = 'hidden';
-            descripcionInput.name = 'descripcion';
-            
-            // Asignar descripción según la clave
-            let descripcion = '';
-            switch(claveInput.value) {
-                case 'version_sistema':
-                    descripcion = 'Versión actual del sistema de secado de cacao';
-                    break;
-                case 'temp_min_industrial':
-                    descripcion = 'Temperatura mínima permitida para secado industrial';
-                    break;
-                case 'temp_max_industrial':
-                    descripcion = 'Temperatura máxima permitida para secado industrial';
-                    break;
-                case 'temp_min_solar':
-                    descripcion = 'Temperatura mínima permitida para secado solar';
-                    break;
-                case 'temp_max_solar':
-                    descripcion = 'Temperatura máxima permitida para secado solar';
-                    break;
-                case 'humedad_min':
-                    descripcion = 'Humedad mínima permitida';
-                    break;
-                case 'humedad_max':
-                    descripcion = 'Humedad máxima permitida';
-                    break;
-                case 'humedad_advertencia_baja':
-                    descripcion = 'Umbral para advertencia de humedad baja';
-                    break;
-                case 'humedad_advertencia_alta':
-                    descripcion = 'Umbral para advertencia de humedad alta';
-                    break;
-                case 'items_por_pagina':
-                    descripcion = 'Número de items a mostrar por página';
-                    break;
-                case 'precio_cacao':
-                    descripcion = 'Precio del cacao en dólares por tonelada métrica';
-                    break;
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        const valorInputs = form.querySelectorAll('input[name="valor"]');
+        
+        valorInputs.forEach(function(input, index) {
+            const claveInput = clavesInputs[index];
+            if (claveInput) {
+                const descripcionInput = document.createElement('input');
+                descripcionInput.type = 'hidden';
+                descripcionInput.name = 'descripcion';
+                
+                // Asignar descripción según la clave
+                let descripcion = '';
+                switch(claveInput.value) {
+                    case 'version_sistema':
+                        descripcion = 'Versión actual del sistema de secado de cacao';
+                        break;
+                    case 'temp_min_industrial':
+                        descripcion = 'Temperatura mínima permitida para secado industrial';
+                        break;
+                    case 'temp_max_industrial':
+                        descripcion = 'Temperatura máxima permitida para secado industrial';
+                        break;
+                    case 'temp_min_solar':
+                        descripcion = 'Temperatura mínima permitida para secado solar';
+                        break;
+                    case 'temp_max_solar':
+                        descripcion = 'Temperatura máxima permitida para secado solar';
+                        break;
+                    case 'humedad_min':
+                        descripcion = 'Humedad mínima permitida';
+                        break;
+                    case 'humedad_max':
+                        descripcion = 'Humedad máxima permitida';
+                        break;
+                    case 'humedad_advertencia_baja':
+                        descripcion = 'Umbral para advertencia de humedad baja';
+                        break;
+                    case 'humedad_advertencia_alta':
+                        descripcion = 'Umbral para advertencia de humedad alta';
+                        break;
+                    case 'items_por_pagina':
+                        descripcion = 'Número de items a mostrar por página';
+                        break;
+                    case 'precio_cacao':
+                        descripcion = 'Precio del cacao en dólares por tonelada métrica';
+                        break;
+                }
+                
+                descripcionInput.value = descripcion;
+                form.appendChild(descripcionInput);
             }
-            
-            descripcionInput.value = descripcion;
-            form.appendChild(descripcionInput);
-        }
+        });
     });
 });
 </script>
 
 <style>
+/* Existing styles */
 .config-container {
     background: white;
     border-radius: 10px;
@@ -210,6 +325,57 @@ document.addEventListener('DOMContentLoaded', function() {
 .config-actions {
     display: flex;
     gap: 0.5rem;
+}
+
+/* Tab Navigation */
+.tab-navigation {
+    display: flex;
+    border-bottom: 2px solid #8B4513;
+    margin-bottom: 1rem;
+    gap: 0.5rem;
+    overflow-x: auto;
+}
+
+.tab-button {
+    padding: 0.75rem 1.5rem;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-weight: 600;
+    color: #6c757d;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.tab-button:hover {
+    color: #8B4513;
+    background: rgba(139, 69, 19, 0.05);
+}
+
+.tab-button.active {
+    color: #8B4513;
+    border-bottom-color: #8B4513;
+    background: rgba(139, 69, 19, 0.1);
+}
+
+/* Tab Content */
+.tab-contents {
+    margin-bottom: 2rem;
+}
+
+.tab-content {
+    display: none;
+    animation: fadeIn 0.3s;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .config-sections {
@@ -243,7 +409,8 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .form-group input[type="text"],
-.form-group input[type="number"] {
+.form-group input[type="number"],
+.form-group input[type="password"] {
     width: 100%;
     padding: 0.75rem;
     border: 1px solid #ced4da;
@@ -264,10 +431,92 @@ document.addEventListener('DOMContentLoaded', function() {
     font-style: italic;
 }
 
+.form-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.form-row .form-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+
 .form-actions {
     display: flex;
     gap: 1rem;
     justify-content: flex-end;
+    align-items: center;
+}
+
+/* SSH Terminal Specific Styles */
+.ssh-terminal-container {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.ssh-connection-form {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.terminal-wrapper {
+    background: #1e1e1e;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+    height: 400px;
+    overflow: hidden;
+}
+
+#terminal {
+    height: 100%;
+    width: 100%;
+}
+
+.connection-status {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-left: 1rem;
+}
+
+.status-connected {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-disconnected {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.status-connecting {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-error {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.command-shortcuts {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
 }
 
 @media (max-width: 768px) {
@@ -282,6 +531,36 @@ document.addEventListener('DOMContentLoaded', function() {
     
     .form-actions {
         flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .tab-navigation {
+        flex-wrap: nowrap;
+        overflow-x: scroll;
+    }
+    
+    .terminal-wrapper {
+        height: 300px;
+    }
+    
+    .command-shortcuts {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .config-container {
+        padding: 1rem;
+    }
+    
+    .terminal-wrapper {
+        height: 250px;
+        padding: 0.5rem;
     }
 }
 </style>

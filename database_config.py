@@ -54,7 +54,7 @@ def configure_app(app, db_type='postgresql'):
         if key != 'description':
             app.config[key] = value
     
-    print(f"🔧 Aplicación configurada para usar: {config['description']}")
+    print(f"[CONFIG] Aplicación configurada para usar: {config['description']}")
 
 def get_current_database_type():
     """
@@ -63,7 +63,7 @@ def get_current_database_type():
     Returns:
         str: Tipo de base de datos ('sqlite' o 'postgresql')
     """
-    return os.environ.get('DB_TYPE', 'postgresql')
+    return os.environ.get('DB_TYPE', 'sqlite')
 
 def auto_configure_app(app):
     """
@@ -88,7 +88,7 @@ def configure_postgresql(app):
 # Información sobre las bases de datos
 def print_database_info():
     """Imprime información sobre las configuraciones de base de datos disponibles"""
-    print("📊 Configuraciones de base de datos disponibles:")
+    print("[INFO] Configuraciones de base de datos disponibles:")
     print("-" * 50)
     for db_type, config in DATABASE_CONFIGS.items():
         print(f"• {db_type.upper()}: {config['description']}")
