@@ -234,72 +234,312 @@
                 <!-- Tarjeta de Comandos de Administración -->
                 <div class="admin-commands-card" style="margin-top: 2rem;">
                     <h4 style="color: #8B4513; margin-bottom: 1rem;">📋 Comandos de Administración</h4>
-
-                    <div class="command-section">
-                        <h5>Sistema</h5>
-                        <div class="command-list">
-                            <button type="button" class="command-btn" onclick="copyToClipboard('top')">top</button>
-                            <button type="button" class="command-btn" onclick="copyToClipboard('df -h')">df -h</button>
-                            <button type="button" class="command-btn" onclick="copyToClipboard('free -h')">free -h</button>
-                            <button type="button" class="command-btn" onclick="copyToClipboard('uptime')">uptime</button>
-                            <button type="button" class="command-btn" onclick="copyToClipboard('whoami')">whoami</button>
-                            <button type="button" class="command-btn" onclick="copyToClipboard('uname -a')">uname -a</button>
+                    
+                    <!-- Pestañas de Comandos -->
+                    <div class="command-tabs-container">
+                        <div class="command-tabs-header">
+                            <button type="button" class="command-tab-btn active" data-command-tab="system" onclick="switchCommandTab('system')">
+                                🖥️ Sistema
+                            </button>
+                            <button type="button" class="command-tab-btn" data-command-tab="processes" onclick="switchCommandTab('processes')">
+                                ⚙️ Procesos
+                            </button>
+                            <button type="button" class="command-tab-btn" data-command-tab="postgresql" onclick="switchCommandTab('postgresql')">
+                                🗄️ PostgreSQL
+                            </button>
+                            <button type="button" class="command-tab-btn" data-command-tab="logs" onclick="switchCommandTab('logs')">
+                                📄 Logs
+                            </button>
+                            <button type="button" class="command-tab-btn" data-command-tab="network" onclick="switchCommandTab('network')">
+                                🌐 Red
+                            </button>
                         </div>
-                    </div>
 
-                    <div class="command-section">
-                        <h5>Procesos y Servicios</h5>
-                        <div class="command-list">
-                            <button type="button" class="command-btn" onclick="copyToClipboard('ps aux')">ps aux</button>
-                            <button type="button" class="command-btn" onclick="copyToClipboard('systemctl status')">systemctl status</button>
-                            <button type="button" class="command-btn" onclick="copyToClipboard('systemctl list-units --type=service --state=running')">servicios activos</button>
-                            <button type="button" class="command-btn" onclick="copyToClipboard('netstat -tlnp')">netstat -tlnp</button>
-                            <button type="button" class="command-btn" onclick="copyToClipboard('ss -tlnp')">ss -tlnp</button>
+                        <!-- PESTAÑA: Sistema -->
+                        <div id="command-system" class="command-tab-content active">
+                            <div class="command-row">
+                                <div class="command-display">top</div>
+                                <div class="command-description">Muestra procesos en tiempo real y consumo de recursos</div>
+                            </div>
+                            <div class="command-row">
+                                <div class="command-display">df -h</div>
+                                <div class="command-description">Muestra espacio en disco de forma legible (-h = human readable)</div>
+                            </div>
+                            <div class="command-row">
+                                <div class="command-display">free -h</div>
+                                <div class="command-description">Muestra uso de memoria RAM y swap de forma legible</div>
+                            </div>
+                            <div class="command-row">
+                                <div class="command-display">uptime</div>
+                                <div class="command-description">Muestra tiempo que lleva encendido el sistema y carga promedio</div>
+                            </div>
+                            <div class="command-row">
+                                <div class="command-display">whoami</div>
+                                <div class="command-description">Muestra el nombre de usuario actual</div>
+                            </div>
+                            <div class="command-row">
+                                <div class="command-display">uname -a</div>
+                                <div class="command-description">Muestra información completa del sistema operativo</div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="command-section">
-                        <h5>PostgreSQL</h5>
-                        <div class="command-list">
-                            <button type="button" class="command-btn" onclick="copyToClipboard('sudo -u postgres psql -l')">listar DBs</button>
-                            <button type="button" class="command-btn" onclick="copyToClipboard('sudo -u postgres psql -c \"\\dt\"')">listar tablas</button>
-                            <button type="button" class="command-btn" onclick="copyToClipboard('sudo -u postgres psql -c \"SELECT * FROM pg_stat_activity;\"')">conexiones activas</button>
-                            <button type="button" class="command-btn" onclick="copyToClipboard('sudo -u postgres psql -c \"SELECT pg_size_pretty(pg_database_size(current_database()));\"')">tamaño DB</button>
-                            <button type="button" class="command-btn" onclick="copyToClipboard('sudo -u postgres psql -c \"SELECT schemaname, tablename, pg_size_pretty(pg_total_relation_size(schemaname||\'.\'||tablename)) FROM pg_tables WHERE schemaname=\'public\' ORDER BY pg_total_relation_size(schemaname||\'.\'||tablename) DESC LIMIT 10;\"')">tablas más grandes</button>
-                            <button type="button" class="command-btn" onclick="copyToClipboard('sudo -u postgres psql -c \"VACUUM ANALYZE;\"')">VACUUM ANALYZE</button>
-                            <button type="button" class="command-btn" onclick="copyToClipboard('sudo systemctl status postgresql')">status PostgreSQL</button>
-                            <button type="button" class="command-btn" onclick="copyToClipboard('sudo systemctl restart postgresql')">restart PostgreSQL</button>
+                        <!-- PESTAÑA: Procesos y Servicios -->
+                        <div id="command-processes" class="command-tab-content">
+                            <div class="command-row">
+                                <div class="command-display">ps aux</div>
+                                <div class="command-description">Muestra todos los procesos en ejecución con detalles</div>
+                            </div>
+                            <div class="command-row">
+                                <div class="command-display">systemctl status</div>
+                                <div class="command-description">Muestra estado de todos los servicios del sistema</div>
+                            </div>
+                            <div class="command-row">
+                                <div class="command-display">systemctl list-units --type=service --state=running</div>
+                                <div class="command-description">Lista solo los servicios que están actualmente activos</div>
+                            </div>
+                            <div class="command-row">
+                                <div class="command-display">netstat -tlnp</div>
+                                <div class="command-description">Muestra conexiones de red y procesos asociados</div>
+                            </div>
+                            <div class="command-row">
+                                <div class="command-display">ss -tlnp</div>
+                                <div class="command-description">Alternativa moderna a netstat para mostrar conexiones</div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="command-section">
-                        <h5>Logs</h5>
-                        <div class="command-list">
-                            <button type="button" class="command-btn" onclick="copyToClipboard('journalctl -xe')">journalctl -xe</button>
-                            <button type="button" class="command-btn" onclick="copyToClipboard('tail -f /var/log/syslog')">syslog</button>
-                            <button type="button" class="command-btn" onclick="copyToClipboard('tail -f /var/log/auth.log')">auth.log</button>
-                            <button type="button" class="command-btn" onclick="copyToClipboard('dmesg | tail -50')">dmesg</button>
+                        <!-- PESTAÑA: PostgreSQL -->
+                        <div id="command-postgresql" class="command-tab-content">
+                            <div class="command-row">
+                                <div class="command-display">sudo -u postgres psql -l</div>
+                                <div class="command-description">Lista todas las bases de datos disponibles</div>
+                            </div>
+                            <div class="command-row">
+                                <div class="command-display">sudo -u postgres psql -c "\dt"</div>
+                                <div class="command-description">Lista todas las tablas de la base de datos actual</div>
+                            </div>
+                            <div class="command-row">
+                                <div class="command-display">sudo -u postgres psql -c "SELECT * FROM pg_stat_activity;"</div>
+                                <div class="command-description">Muestra todas las conexiones activas a PostgreSQL</div>
+                            </div>
+                            <div class="command-row">
+                                <div class="command-display">sudo -u postgres psql -c "SELECT pg_size_pretty(pg_database_size(current_database()));"</div>
+                                <div class="command-description">Muestra el tamaño de la base de datos actual</div>
+                            </div>
+                            <div class="command-row">
+                                <div class="command-display">sudo -u postgres psql -c "SELECT schemaname, tablename, pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) FROM pg_tables WHERE schemaname='public' ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC LIMIT 10;"</div>
+                                <div class="command-description">Muestra las 10 tablas más grandes de la base de datos</div>
+                            </div>
+                            <div class="command-row">
+                                <div class="command-display">sudo -u postgres psql -c "VACUUM ANALYZE;"</div>
+                                <div class="command-description">Optimiza la base de datos y actualiza estadísticas</div>
+                            </div>
+                            <div class="command-row">
+                                <div class="command-display">sudo systemctl status postgresql</div>
+                                <div class="command-description">Muestra el estado del servicio PostgreSQL</div>
+                            </div>
+                            <div class="command-row">
+                                <div class="command-display">sudo systemctl restart postgresql</div>
+                                <div class="command-description">Reinicia el servicio PostgreSQL</div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="command-section">
-                        <h5>Red</h5>
-                        <div class="command-list">
-                            <button type="button" class="command-btn" onclick="copyToClipboard('ip addr')">ip addr</button>
-                            <button type="button" class="command-btn" onclick="copyToClipboard('ip route')">ip route</button>
-                            <button type="button" class="command-btn" onclick="copyToClipboard('ping -c 4 8.8.8.8')">ping Google</button>
-                            <button type="button" class="command-btn" onclick="copyToClipboard('curl -I https://google.com')">curl Google</button>
+                        <!-- PESTAÑA: Logs -->
+                        <div id="command-logs" class="command-tab-content">
+                            <div class="command-row">
+                                <div class="command-display">journalctl -xe</div>
+                                <div class="command-description">Muestra los errores más recientes del sistema</div>
+                            </div>
+                            <div class="command-row">
+                                <div class="command-display">tail -f /var/log/syslog</div>
+                                <div class="command-description">Muestra en tiempo real el log del sistema</div>
+                            </div>
+                            <div class="command-row">
+                                <div class="command-display">tail -f /var/log/auth.log</div>
+                                <div class="command-description">Muestra en tiempo real los logs de autenticación</div>
+                            </div>
+                            <div class="command-row">
+                                <div class="command-display">dmesg | tail -50</div>
+                                <div class="command-description">Muestra los últimos 50 mensajes del kernel</div>
+                            </div>
+                        </div>
+
+                        <!-- PESTAÑA: Red -->
+                        <div id="command-network" class="command-tab-content">
+                            <div class="command-row">
+                                <div class="command-display">ip addr</div>
+                                <div class="command-description">Muestra todas las interfaces de red y sus IPs</div>
+                            </div>
+                            <div class="command-row">
+                                <div class="command-display">ip route</div>
+                                <div class="command-description">Muestra la tabla de enrutamiento</div>
+                            </div>
+                            <div class="command-row">
+                                <div class="command-display">ping -c 4 8.8.8.8</div>
+                                <div class="command-description">Prueba conectividad con Google (4 paquetes)</div>
+                            </div>
+                            <div class="command-row">
+                                <div class="command-display">curl -I https://google.com</div>
+                                <div class="command-description">Prueba conexión HTTP y muestra cabeceras</div>
+                            </div>
                         </div>
                     </div>
 
                     <p class="form-hint" style="margin-top: 1rem; font-size: 0.8rem;">
-                        💡 Haz clic en cualquier comando para copiarlo al portapapeles. Luego pégalo en la terminal con Ctrl+V o clic derecho → Pegar.
+                        💡 Estos son los comandos más utilizados para administración del sistema. Escríbalos manualmente en la terminal SSH.
                     </p>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+.command-display {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin: 4px 0;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    color: #495057;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    cursor: default;
+    display: inline-block;
+    min-width: 150px;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.command-display:hover {
+    background-color: #e9ecef;
+    border-color: #8B4513;
+    color: #8B4513;
+}
+
+.command-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.command-section {
+    margin-bottom: 20px;
+}
+
+.command-section h5 {
+    color: #8B4513;
+    margin-bottom: 8px;
+    font-size: 1rem;
+}
+
+.admin-commands-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Estilos para pestañas de comandos */
+.command-tabs-container {
+    margin-top: 15px;
+}
+
+.command-tabs-header {
+    display: flex;
+    border-bottom: 2px solid #e9ecef;
+    margin-bottom: 15px;
+    overflow-x: auto;
+}
+
+.command-tab-btn {
+    background: none;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #6c757d;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.command-tab-btn:hover {
+    color: #8B4513;
+    background-color: rgba(139, 69, 19, 0.05);
+}
+
+.command-tab-btn.active {
+    color: #8B4513;
+    border-bottom-color: #8B4513;
+    font-weight: 600;
+}
+
+.command-tab-content {
+    display: none;
+}
+
+.command-tab-content.active {
+    display: block;
+}
+
+.command-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.command-row:last-child {
+    border-bottom: none;
+}
+
+.command-description {
+    margin-left: 15px;
+    font-size: 0.85rem;
+    color: #6c757d;
+    line-height: 1.4;
+    flex: 1;
+}
+
+@media (max-width: 768px) {
+    .command-tabs-header {
+        flex-wrap: wrap;
+    }
+    
+    .command-tab-btn {
+        flex: 1;
+        min-width: 100px;
+        text-align: center;
+        font-size: 0.8rem;
+        padding: 8px 10px;
+    }
+    
+    .command-row {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px 0;
+    }
+    
+    .command-description {
+        margin-left: 0;
+        margin-top: 8px;
+    }
+    
+    .command-display {
+        font-size: 0.8rem;
+        min-width: 120px;
+        padding: 6px 10px;
+    }
+}
+</style>
 
 <script>
 // =============================================================================
@@ -323,6 +563,29 @@ function switchTab(tabId) {
 
     // Guardar pestaña activa en localStorage
     localStorage.setItem('activeConfigTab', tabId);
+}
+
+// =============================================================================
+// SISTEMA DE PESTAÑAS DE COMANDOS
+// =============================================================================
+
+function switchCommandTab(tabId) {
+    // Ocultar todas las pestañas de comandos
+    const commandTabs = document.querySelectorAll('.command-tab-content');
+    commandTabs.forEach(tab => tab.classList.remove('active'));
+
+    // Desactivar todos los botones de comandos
+    const commandButtons = document.querySelectorAll('.command-tab-btn');
+    commandButtons.forEach(btn => btn.classList.remove('active'));
+
+    // Activar la pestaña seleccionada
+    document.getElementById(`command-${tabId}`).classList.add('active');
+
+    // Activar el botón correspondiente
+    document.querySelector(`[data-command-tab="${tabId}"]`).classList.add('active');
+
+    // Guardar pestaña activa en localStorage
+    localStorage.setItem('activeCommandTab', tabId);
 }
 
 // =============================================================================
