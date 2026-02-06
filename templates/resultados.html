@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Resultados - Sistema de Secado de Cacao{% endblock %}
+
+{% block content %}
+<div class="results-container">
+    <h2>Resultados del Cálculo de Secado</h2>
+    
+    <!-- Mostrar advertencias si existen -->
+    {% if advertencias %}
+    <div class="warnings-container">
+        {% for advertencia in advertencias %}
+        <div class="alert alert-warning">
+            {{ advertencia }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="result-summary">
+        <div class="summary-card">
+            <h3>{{ resultados.modo }}</h3>
+            <p class="temperature">Temperatura Efectiva: {{ "%.1f"|format(resultados.temp_efectiva) }}°C</p>
+            {% if resultados.modo == 'SOLAR' %}
+                <p>Superficie: {{ resultados.nombre_superficie }}</p>
+                <p>Ajuste de Temperatura: {{ "%+.1f"|format(resultados.delta_t) }}°C</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="results-grid">
+        <!-- Balance de Masa -->
+        <div class="result-card">
+            <h3>Balance de Masa</h3>
+            <div class="result-item">
+                <span class="label">Peso Inicial:</span>
+                <span class="value">{{ "%.2f"|format(resultados.peso_kg_inicial) }} kg</span>
+            </div>
+            <div class="result-item">
+                <span class="label">Peso Final:</span>
+                <span class="value">{{ "%.2f"|format(resultados.peso_kg_final) }} kg</span>
+            </div>
+            <div class="result-item highlight">
+                <span class="label">Agua Evaporada:</span>
+                <span class="value">{{ "%.2f"|format(resultados.agua_eliminada) }} Litros</span>
+            </div>
+        </div>
+
+        <!-- Tiempo Estimado -->
+        <div class="result-card">
+            <h3>Tiempo Estimado</h3>
+            {% if resultados.modo == 'INDUSTRIAL' %}
+                <div class="result-item time-highlight">
+                    <span class="label">Tiempo Total:</span>
+                    <span class="value">{{ "%.2f"|format(resultados.tiempo_total_horas_calor) }} HORAS</span>
+                </div>
+            {% else %}
+                <div class="result-item">
+                    <span class="label">Horas de Sol Requeridas:</span>
+                    <span class="value">{{ "%.1f"|format(resultados.tiempo_total_horas_calor) }} horas</span>
+                </div>
+                <div class="result-item time-highlight">
+                    <span class="label">Días Estimados:</span>
+                    <span class="value">{{ "%.1f"|format(resultados.dias_estimados) }} DÍAS</span>
+                </div>
+                {% if resultados.delta_t > 0 %}
+                    <p class="note">Más rápido gracias al calor del {{ resultados.nombre_superficie.split()[0] }}</p>
+                {% elif resultados.delta_t < 0 %}
+                    <p class="note">Más lento debido a la humedad de la {{ resultados.nombre_superficie.split()[0] }}</p>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        <!-- Parámetros del Modelo -->
+        <div class="result-card">
+            <h3>Parámetros del Modelo</h3>
+            <div class="result-item">
+                <span class="label">Constante k:</span>
+                <span class="value">{{ "%.4f"|format(resultados.k_calculado) }}</span>
+            </div>
+            <div class="result-item">
+                <span class="label">Constante n:</span>
+                <span class="value">{{ "%.2f"|format(resultados.n_calculado) }}</span>
+            </div>
+            <div class="result-item">
+                <span class="label">Tiempo Base:</span>
+                <span class="value">{{ "%.2f"|format(resultados.tiempo_base_horas) }} horas</span>
+            </div>
+        </div>
+
+        <!-- Valor Estimado de Venta -->
+        <div class="result-card">
+            <h3>Valor Estimado de Venta</h3>
+            <div class="result-item">
+                <span class="label">Precio del Cacao:</span>
+                <span class="value">${{ "%.2f"|format(resultados.precio_cacao_usd_ton) }} USD/tonelada</span>
+            </div>
+            <div class="result-item">
+                <span class="label">Peso Final:</span>
+                <span class="value">{{ "%.3f"|format(resultados.peso_final_toneladas) }} toneladas</span>
+            </div>
+            <div class="result-item highlight">
+                <span class="label">Valor Estimado:</span>
+                <span class="value">${{ "%.2f"|format(resultados.valor_estimado_venta_usd) }} USD</span>
+            </div>
+        </div>
+
+        <!-- Alertas -->
+        {% if resultados.sobrecarga_detectada %}
+        <div class="result-card alert-card">
+            <h3>⚠️ Alerta de Sobrecarga</h3>
+            <div class="result-item">
+                <span class="label">Capacidad Utilizada:</span>
+                <span class="value">{{ "%.0f"|format(resultados.porcentaje_capacidad) }}%</span>
+            </div>
+            <div class="result-item">
+                <span class="label">Factor de Penalización:</span>
+                <span class="value">{{ "%.1f"|format(resultados.factor_penalizacion) }}x</span>
+            </div>
+            <p class="alert-message">El aire no circula bien. El proceso será {{ "%.1f"|format(resultados.factor_penalizacion) }}x más lento.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="form-actions">
+        <a href="{{ url_for('index') }}" class="btn btn-primary">Nuevo Cálculo</a>
+        <button onclick="window.print()" class="btn btn-secondary">Imprimir Resultados</button>
+    </div>
+</div>
+
+<!-- Datos de entrada para referencia -->
+<div class="input-data">
+    <h3>Datos de Entrada Utilizados</h3>
+    <div class="input-grid">
+        <div class="input-item">
+            <span class="label">Método:</span>
+            <span class="value">{{ datos_entrada.modo_nombre }}</span>
+        </div>
+        <div class="input-item">
+            <span class="label">Temperatura:</span>
+            <span class="value">{{ datos_entrada.temp_aire }}°C</span>
+        </div>
+        {% if datos_entrada.modo == '2' %}
+        <div class="input-item">
+            <span class="label">Superficie:</span>
+            <span class="value">{{ datos_entrada.superficie_nombre }}</span>
+        </div>
+        {% endif %}
+        <div class="input-item">
+            <span class="label">Humedad Inicial:</span>
+            <span class="value">{{ datos_entrada.h_inicial }}%</span>
+        </div>
+        <div class="input-item">
+            <span class="label">Humedad Final:</span>
+            <span class="value">{{ datos_entrada.h_final }}%</span>
+        </div>
+        <div class="input-item">
+            <span class="label">Peso:</span>
+            <span class="value">{{ datos_entrada.peso_quintales }} qq</span>
+        </div>
+        <div class="input-item">
+            <span class="label">Capacidad:</span>
+            <span class="value">{{ datos_entrada.capacidad_max }} qq</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

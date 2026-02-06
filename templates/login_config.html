@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+
+{% block title %}Autenticación - Sistema de Secado de Cacao{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h2>Acceso a Configuración</h2>
+            <p>Ingrese la contraseña para acceder a la configuración del sistema</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('verificar_login_config') }}" class="login-form">
+            <div class="form-group">
+                <label for="password">Contraseña:</label>
+                <input type="password" id="password" name="password" required 
+                       class="form-control" placeholder="Ingrese su contraseña">
+                <small class="form-hint">Esta contraseña protege el acceso a la configuración del sistema</small>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-block">
+                    <span class="btn-text">Acceder</span>
+                    <span class="btn-loading" style="display: none;">Verificando...</span>
+                </button>
+                <a href="{{ url_for('index') }}" class="btn btn-secondary btn-block">Cancelar</a>
+            </div>
+        </form>
+
+        <div class="login-footer">
+            <p class="text-muted">
+                <small>Si olvidó la contraseña, contacte al administrador del sistema</small>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.login-form');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const btnText = submitBtn.querySelector('.btn-text');
+    const btnLoading = submitBtn.querySelector('.btn-loading');
+    const passwordInput = document.getElementById('password');
+
+    // Mostrar/ocultar contraseña
+    const togglePassword = document.createElement('button');
+    togglePassword.type = 'button';
+    togglePassword.className = 'toggle-password';
+    togglePassword.innerHTML = '👁️';
+    togglePassword.title = 'Mostrar/Ocultar contraseña';
+    
+    const passwordGroup = passwordInput.parentElement;
+    passwordGroup.style.position = 'relative';
+    passwordGroup.appendChild(togglePassword);
+
+    togglePassword.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        this.innerHTML = type === 'password' ? '👁️' : '👁️‍🗨️';
+    });
+
+    // Manejar envío del formulario
+    form.addEventListener('submit', function(e) {
+        // Validar que la contraseña no esté vacía
+        if (!passwordInput.value.trim()) {
+            e.preventDefault();
+            showAlerta('Error', 'Por favor ingrese una contraseña', 'error');
+            return;
+        }
+
+        // Mostrar estado de carga
+        submitBtn.disabled = true;
+        btnText.style.display = 'none';
+        btnLoading.style.display = 'inline';
+    });
+
+    // Enfocar automáticamente en el campo de contraseña
+    passwordInput.focus();
+});
+</script>
+
+<style>
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 70vh;
+    padding: 2rem;
+}
+
+.login-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 400px;
+    border-top: 4px solid #8B4513;
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-header h2 {
+    color: #8B4513;
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+}
+
+.login-header p {
+    color: #6c757d;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.login-form {
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #495057;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: #8B4513;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(139, 69, 19, 0.25);
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.toggle-password:hover {
+    background-color: #f8f9fa;
+}
+
+.form-hint {
+    display: block;
+    font-size: 0.875rem;
+    color: #6c757d;
+    font-style: italic;
+    margin-top: 0.25rem;
+}
+
+.form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.btn {
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: #8B4513;
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: #6d3410;
+    opacity: 0.9;
+}
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+    opacity: 0.9;
+}
+
+.btn-block {
+    width: 100%;
+}
+
+.login-footer {
+    text-align: center;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+
+.alert {
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+.alert-warning {
+    color: #856404;
+    background-color: #fff3cd;
+    border-color: #ffeaa7;
+}
+
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+.alert-success {
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+
+@media (max-width: 480px) {
+    .login-container {
+        padding: 1rem;
+    }
+    
+    .login-card {
+        padding: 1.5rem;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,1092 @@
+{% extends "base.html" %}
+
+{% block title %}Configuración del Sistema - Sistema de Secado de Cacao{% endblock %}
+
+{% block content %}
+<div class="config-container">
+    <div class="config-header">
+        <h2>Configuración del Sistema</h2>
+        <div class="config-actions">
+            {% if autenticado %}
+                <a href="{{ url_for('cambiar_password_config') }}" class="btn btn-secondary">
+                    🔐 Cambiar Contraseña
+                </a>
+                <a href="{{ url_for('logout_config') }}" class="btn btn-warning">
+                    🚪 Cerrar Sesión
+                </a>
+            {% endif %}
+            <a href="{{ url_for('index') }}" class="btn btn-primary">Volver al Inicio</a>
+        </div>
+    </div>
+
+    <!-- Sistema de Pestañas -->
+    <div class="tabs-container">
+        <div class="tabs-header">
+            <button type="button" class="tab-btn active" data-tab="config-temperatura" onclick="switchTab('config-temperatura')">
+                🌡️ Temperatura
+            </button>
+            <button type="button" class="tab-btn" data-tab="config-humedad" onclick="switchTab('config-humedad')">
+                💧 Humedad
+            </button>
+            <button type="button" class="tab-btn" data-tab="config-visual" onclick="switchTab('config-visual')">
+                👁️ Visual
+            </button>
+            <button type="button" class="tab-btn" data-tab="config-economica" onclick="switchTab('config-economica')">
+                💰 Económica
+            </button>
+            <button type="button" class="tab-btn" data-tab="config-ssh" onclick="switchTab('config-ssh')">
+                🖥️ Consola SSH
+            </button>
+        </div>
+
+        <!-- PESTAÑA: Temperatura -->
+        <div id="config-temperatura" class="tab-content active">
+            <form method="POST" action="{{ url_for('guardar_configuracion') }}" id="form-temperatura">
+                <div class="config-section">
+                    <h3>Parámetros de Temperatura</h3>
+
+                    <div class="form-group">
+                        <label for="temp_min_industrial">Temperatura Mínima Industrial (°C):</label>
+                        <input type="text" id="temp_min_industrial" name="clave" value="temp_min_industrial" readonly>
+                        <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'temp_min_industrial' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="100" step="0.1">
+                        <small class="form-hint">Temperatura mínima permitida para secado industrial</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="temp_max_industrial">Temperatura Máxima Industrial (°C):</label>
+                        <input type="text" id="temp_max_industrial" name="clave" value="temp_max_industrial" readonly>
+                        <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'temp_max_industrial' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="150" step="0.1">
+                        <small class="form-hint">Temperatura máxima permitida para secado industrial</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="temp_min_solar">Temperatura Mínima Solar (°C):</label>
+                        <input type="text" id="temp_min_solar" name="clave" value="temp_min_solar" readonly>
+                        <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'temp_min_solar' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="50" step="0.1">
+                        <small class="form-hint">Temperatura mínima permitida para secado solar</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="temp_max_solar">Temperatura Máxima Solar (°C):</label>
+                        <input type="text" id="temp_max_solar" name="clave" value="temp_max_solar" readonly>
+                        <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'temp_max_solar' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="60" step="0.1">
+                        <small class="form-hint">Temperatura máxima permitida para secado solar</small>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Guardar Configuración</button>
+                    <button type="reset" class="btn btn-secondary">Restablecer Valores</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- PESTAÑA: Humedad -->
+        <div id="config-humedad" class="tab-content">
+            <form method="POST" action="{{ url_for('guardar_configuracion') }}" id="form-humedad">
+                <div class="config-section">
+                    <h3>Parámetros de Humedad</h3>
+
+                    <div class="form-group">
+                        <label for="humedad_min">Humedad Mínima (%):</label>
+                        <input type="text" id="humedad_min" name="clave" value="humedad_min" readonly>
+                        <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'humedad_min' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="100" step="0.1">
+                        <small class="form-hint">Humedad mínima permitida</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="humedad_max">Humedad Máxima (%):</label>
+                        <input type="text" id="humedad_max" name="clave" value="humedad_max" readonly>
+                        <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'humedad_max' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="100" step="0.1">
+                        <small class="form-hint">Humedad máxima permitida</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="humedad_advertencia_baja">Umbral Advertencia Baja (%):</label>
+                        <input type="text" id="humedad_advertencia_baja" name="clave" value="humedad_advertencia_baja" readonly>
+                        <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'humedad_advertencia_baja' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="100" step="0.1">
+                        <small class="form-hint">Umbral para advertencia de humedad baja (puede quebrar el grano)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="humedad_advertencia_alta">Umbral Advertencia Alta (%):</label>
+                        <input type="text" id="humedad_advertencia_alta" name="clave" value="humedad_advertencia_alta" readonly>
+                        <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'humedad_advertencia_alta' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="100" step="0.1">
+                        <small class="form-hint">Umbral para advertencia de humedad alta (puede generar moho)</small>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Guardar Configuración</button>
+                    <button type="reset" class="btn btn-secondary">Restablecer Valores</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- PESTAÑA: Visual -->
+        <div id="config-visual" class="tab-content">
+            <form method="POST" action="{{ url_for('guardar_configuracion') }}" id="form-visual">
+                <div class="config-section">
+                    <h3>Configuración de Visualización</h3>
+
+                    <div class="form-group">
+                        <label for="items_por_pagina">Items por Página:</label>
+                        <input type="text" id="items_por_pagina" name="clave" value="items_por_pagina" readonly>
+                        <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'items_por_pagina' %}{{ config.valor }}{% endif %}{% endfor %}" min="5" max="100" step="5">
+                        <small class="form-hint">Número de items a mostrar por página en el historial</small>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Guardar Configuración</button>
+                    <button type="reset" class="btn btn-secondary">Restablecer Valores</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- PESTAÑA: Económica -->
+        <div id="config-economica" class="tab-content">
+            <form method="POST" action="{{ url_for('guardar_configuracion') }}" id="form-economica">
+                <div class="config-section">
+                    <h3>Configuración Económica</h3>
+
+                    <div class="form-group">
+                        <label for="precio_cacao">Precio del Cacao ($/tonelada):</label>
+                        <input type="text" id="precio_cacao" name="clave" value="precio_cacao" readonly>
+                        <input type="number" name="valor" value="{% for config in configuraciones %}{% if config.clave == 'precio_cacao' %}{{ config.valor }}{% endif %}{% endfor %}" min="0" max="50000" step="100">
+                        <small class="form-hint">Precio del cacao en dólares por tonelada métrica</small>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Guardar Configuración</button>
+                    <button type="reset" class="btn btn-secondary">Restablecer Valores</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- PESTAÑA: Consola SSH -->
+        <div id="config-ssh" class="tab-content">
+            <div class="config-section">
+                <h3>Consola SSH</h3>
+                <p class="form-hint" style="margin-bottom: 1.5rem;">Conecte a servidores remotos mediante SSH directamente desde el navegador.</p>
+
+                <!-- Panel de Conexión -->
+                <div id="ssh-connection-panel">
+                    <div class="form-group">
+                        <label for="ssh-hostname">Hostname/IP:</label>
+                        <input type="text" id="ssh-hostname" placeholder="ej: 192.168.1.100 o servidor.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ssh-port">Puerto:</label>
+                        <input type="number" id="ssh-port" value="22" min="1" max="65535" style="width: 120px;">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ssh-username">Usuario:</label>
+                        <input type="text" id="ssh-username" placeholder="usuario">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ssh-password">Contraseña:</label>
+                        <input type="password" id="ssh-password" placeholder="contraseña">
+                    </div>
+
+                    <div class="form-actions" style="justify-content: flex-start; margin-top: 1.5rem;">
+                        <button type="button" id="ssh-connect-btn" class="btn btn-primary" onclick="sshConnect()">
+                            Conectar
+                        </button>
+                        <button type="button" id="ssh-clear-btn" class="btn btn-secondary" onclick="sshClearForm()">
+                            Limpiar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Panel de Terminal (inicialmente oculto) -->
+                <div id="ssh-terminal-panel" style="display: none;">
+                    <div class="ssh-terminal-header-custom">
+                        <span id="ssh-connection-status" class="ssh-status-badge disconnected">Desconectado</span>
+                        <span id="ssh-connection-info" style="color: #6c757d; font-family: monospace;"></span>
+                        <button type="button" class="btn btn-danger" onclick="sshDisconnect()">
+                            Desconectar
+                        </button>
+                    </div>
+                    <div id="ssh-terminal" class="ssh-terminal-custom">
+                        <div id="ssh-output" class="ssh-output-custom"></div>
+                        <div class="ssh-input-line-custom">
+                            <span id="ssh-prompt" style="color: #8B4513; font-weight: bold;">$ </span>
+                            <input type="text" id="ssh-command-input" class="ssh-input-custom" autocomplete="off"
+                                   placeholder="Escriba un comando..." onkeydown="sshHandleKey(event)">
+                        </div>
+                    </div>
+                    <div class="ssh-shortcuts-custom">
+                        <span style="color: #6c757d;">Atajos:</span>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="sshSendKey('ctrl_c')">Ctrl+C</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="sshSendKey('ctrl_d')">Ctrl+D</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="sshSendKey('ctrl_l')">Clear</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="sshSendKey('tab')">Tab</button>
+                    </div>
+                </div>
+
+                <div id="ssh-error" class="alert alert-danger" style="display: none; margin-top: 1rem;"></div>
+
+                <!-- Tarjeta de Comandos de Administración -->
+                <div class="admin-commands-card" style="margin-top: 2rem;">
+                    <h4 style="color: #8B4513; margin-bottom: 1rem;">📋 Comandos de Administración</h4>
+
+                    <div class="command-section">
+                        <h5>Sistema</h5>
+                        <div class="command-list">
+                            <button type="button" class="command-btn" onclick="copyToClipboard('top')">top</button>
+                            <button type="button" class="command-btn" onclick="copyToClipboard('df -h')">df -h</button>
+                            <button type="button" class="command-btn" onclick="copyToClipboard('free -h')">free -h</button>
+                            <button type="button" class="command-btn" onclick="copyToClipboard('uptime')">uptime</button>
+                            <button type="button" class="command-btn" onclick="copyToClipboard('whoami')">whoami</button>
+                            <button type="button" class="command-btn" onclick="copyToClipboard('uname -a')">uname -a</button>
+                        </div>
+                    </div>
+
+                    <div class="command-section">
+                        <h5>Procesos y Servicios</h5>
+                        <div class="command-list">
+                            <button type="button" class="command-btn" onclick="copyToClipboard('ps aux')">ps aux</button>
+                            <button type="button" class="command-btn" onclick="copyToClipboard('systemctl status')">systemctl status</button>
+                            <button type="button" class="command-btn" onclick="copyToClipboard('systemctl list-units --type=service --state=running')">servicios activos</button>
+                            <button type="button" class="command-btn" onclick="copyToClipboard('netstat -tlnp')">netstat -tlnp</button>
+                            <button type="button" class="command-btn" onclick="copyToClipboard('ss -tlnp')">ss -tlnp</button>
+                        </div>
+                    </div>
+
+                    <div class="command-section">
+                        <h5>PostgreSQL</h5>
+                        <div class="command-list">
+                            <button type="button" class="command-btn" onclick="copyToClipboard('sudo -u postgres psql -l')">listar DBs</button>
+                            <button type="button" class="command-btn" onclick="copyToClipboard('sudo -u postgres psql -c \"\\dt\"')">listar tablas</button>
+                            <button type="button" class="command-btn" onclick="copyToClipboard('sudo -u postgres psql -c \"SELECT * FROM pg_stat_activity;\"')">conexiones activas</button>
+                            <button type="button" class="command-btn" onclick="copyToClipboard('sudo -u postgres psql -c \"SELECT pg_size_pretty(pg_database_size(current_database()));\"')">tamaño DB</button>
+                            <button type="button" class="command-btn" onclick="copyToClipboard('sudo -u postgres psql -c \"SELECT schemaname, tablename, pg_size_pretty(pg_total_relation_size(schemaname||\'.\'||tablename)) FROM pg_tables WHERE schemaname=\'public\' ORDER BY pg_total_relation_size(schemaname||\'.\'||tablename) DESC LIMIT 10;\"')">tablas más grandes</button>
+                            <button type="button" class="command-btn" onclick="copyToClipboard('sudo -u postgres psql -c \"VACUUM ANALYZE;\"')">VACUUM ANALYZE</button>
+                            <button type="button" class="command-btn" onclick="copyToClipboard('sudo systemctl status postgresql')">status PostgreSQL</button>
+                            <button type="button" class="command-btn" onclick="copyToClipboard('sudo systemctl restart postgresql')">restart PostgreSQL</button>
+                        </div>
+                    </div>
+
+                    <div class="command-section">
+                        <h5>Logs</h5>
+                        <div class="command-list">
+                            <button type="button" class="command-btn" onclick="copyToClipboard('journalctl -xe')">journalctl -xe</button>
+                            <button type="button" class="command-btn" onclick="copyToClipboard('tail -f /var/log/syslog')">syslog</button>
+                            <button type="button" class="command-btn" onclick="copyToClipboard('tail -f /var/log/auth.log')">auth.log</button>
+                            <button type="button" class="command-btn" onclick="copyToClipboard('dmesg | tail -50')">dmesg</button>
+                        </div>
+                    </div>
+
+                    <div class="command-section">
+                        <h5>Red</h5>
+                        <div class="command-list">
+                            <button type="button" class="command-btn" onclick="copyToClipboard('ip addr')">ip addr</button>
+                            <button type="button" class="command-btn" onclick="copyToClipboard('ip route')">ip route</button>
+                            <button type="button" class="command-btn" onclick="copyToClipboard('ping -c 4 8.8.8.8')">ping Google</button>
+                            <button type="button" class="command-btn" onclick="copyToClipboard('curl -I https://google.com')">curl Google</button>
+                        </div>
+                    </div>
+
+                    <p class="form-hint" style="margin-top: 1rem; font-size: 0.8rem;">
+                        💡 Haz clic en cualquier comando para copiarlo al portapapeles. Luego pégalo en la terminal con Ctrl+V o clic derecho → Pegar.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// =============================================================================
+// SISTEMA DE PESTAÑAS
+// =============================================================================
+
+function switchTab(tabId) {
+    // Ocultar todas las pestañas
+    const tabs = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => tab.classList.remove('active'));
+
+    // Desactivar todos los botones
+    const buttons = document.querySelectorAll('.tab-btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+
+    // Activar la pestaña seleccionada
+    document.getElementById(tabId).classList.add('active');
+
+    // Activar el botón correspondiente
+    document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+
+    // Guardar pestaña activa en localStorage
+    localStorage.setItem('activeConfigTab', tabId);
+}
+
+// =============================================================================
+// CONSOLA SSH
+// =============================================================================
+
+let sshConnected = false;
+let sshPolling = null;
+let commandHistory = [];
+let historyIndex = -1;
+
+function sshConnect() {
+    const hostname = document.getElementById('ssh-hostname').value.trim();
+    const port = document.getElementById('ssh-port').value;
+    const username = document.getElementById('ssh-username').value.trim();
+    const password = document.getElementById('ssh-password').value;
+
+    if (!hostname || !username || !password) {
+        sshShowError('Por favor complete todos los campos');
+        return;
+    }
+
+    const btn = document.getElementById('ssh-connect-btn');
+    btn.disabled = true;
+    btn.textContent = 'Conectando...';
+    sshClearError();
+
+    fetch('/api/ssh/connect', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+            hostname: hostname,
+            port: parseInt(port),
+            username: username,
+            password: password
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.textContent = 'Conectar';
+
+        if (data.success) {
+            sshConnected = true;
+            document.getElementById('ssh-connection-panel').style.display = 'none';
+            document.getElementById('ssh-terminal-panel').style.display = 'block';
+            document.getElementById('ssh-connection-status').textContent = 'Conectado';
+            document.getElementById('ssh-connection-status').className = 'ssh-status connected';
+            document.getElementById('ssh-connection-info').textContent = `${username}@${hostname}`;
+            document.getElementById('ssh-output').innerHTML = '';
+            document.getElementById('ssh-command-input').focus();
+
+            // Iniciar polling de salida
+            sshStartPolling();
+        } else {
+            sshShowError(data.error || 'Error al conectar');
+        }
+    })
+    .catch(error => {
+        btn.disabled = false;
+        btn.textContent = 'Conectar';
+        sshShowError('Error de conexión: ' + error.message);
+    });
+}
+
+function sshDisconnect() {
+    fetch('/api/ssh/disconnect', {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(() => {
+        sshConnected = false;
+        if (sshPolling) {
+            clearInterval(sshPolling);
+            sshPolling = null;
+        }
+        document.getElementById('ssh-connection-panel').style.display = 'block';
+        document.getElementById('ssh-terminal-panel').style.display = 'none';
+        document.getElementById('ssh-connection-status').textContent = 'Desconectado';
+        document.getElementById('ssh-connection-status').className = 'ssh-status disconnected';
+        document.getElementById('ssh-output').innerHTML = '';
+    });
+}
+
+function sshStartPolling() {
+    if (sshPolling) clearInterval(sshPolling);
+
+    sshPolling = setInterval(() => {
+        if (!sshConnected) return;
+
+        fetch('/api/ssh/output', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.output) {
+                sshAppendOutput(data.output);
+            }
+            if (!data.connected) {
+                sshDisconnect();
+            }
+        })
+        .catch(() => {
+            // Silenciar errores de polling
+        });
+    }, 500);
+}
+
+function sshExecuteCommand() {
+    const input = document.getElementById('ssh-command-input');
+    const command = input.value.trim();
+
+    if (!command) return;
+
+    // Guardar en historial
+    commandHistory.push(command);
+    historyIndex = commandHistory.length;
+
+    // Mostrar comando ejecutado
+    sshAppendOutput(`$ ${command}\n`);
+
+    input.value = '';
+    input.disabled = true;
+
+    fetch('/api/ssh/execute', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ command: command })
+    })
+    .then(response => response.json())
+    .then(data => {
+        input.disabled = false;
+        input.focus();
+
+        if (data.success) {
+            if (data.output) {
+                sshAppendOutput(data.output);
+            }
+        } else {
+            sshAppendOutput(`Error: ${data.error}\n`);
+        }
+    })
+    .catch(error => {
+        input.disabled = false;
+        input.focus();
+        sshAppendOutput(`Error: ${error.message}\n`);
+    });
+}
+
+function sshSendKey(key) {
+    if (!sshConnected) return;
+
+    fetch('/api/ssh/key', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ key: key })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.output) {
+            sshAppendOutput(data.output);
+        }
+    });
+
+    document.getElementById('ssh-command-input').focus();
+}
+
+function sshHandleKey(event) {
+    const input = document.getElementById('ssh-command-input');
+
+    switch(event.key) {
+        case 'Enter':
+            event.preventDefault();
+            sshExecuteCommand();
+            break;
+        case 'ArrowUp':
+            event.preventDefault();
+            if (historyIndex > 0) {
+                historyIndex--;
+                input.value = commandHistory[historyIndex] || '';
+            }
+            break;
+        case 'ArrowDown':
+            event.preventDefault();
+            if (historyIndex < commandHistory.length - 1) {
+                historyIndex++;
+                input.value = commandHistory[historyIndex] || '';
+            } else {
+                historyIndex = commandHistory.length;
+                input.value = '';
+            }
+            break;
+        case 'Tab':
+            event.preventDefault();
+            sshSendKey('tab');
+            break;
+        case 'c':
+            if (event.ctrlKey) {
+                event.preventDefault();
+                sshSendKey('ctrl_c');
+            }
+            break;
+        case 'd':
+            if (event.ctrlKey) {
+                event.preventDefault();
+                sshSendKey('ctrl_d');
+            }
+            break;
+        case 'l':
+            if (event.ctrlKey) {
+                event.preventDefault();
+                document.getElementById('ssh-output').innerHTML = '';
+            }
+            break;
+    }
+}
+
+function sshAppendOutput(text) {
+    const output = document.getElementById('ssh-output');
+    const escaped = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\x1b\[0?m/g, '</span>')
+        .replace(/\x1b\[([0-9;]*)m/g, (match, codes) => {
+            const classes = codes.split(';').map(c => `ansi-${c}`).join(' ');
+            return `<span class="${classes}">`;
+        })
+        .replace(/\n/g, '<br>');
+
+    output.innerHTML += escaped;
+    output.scrollTop = output.scrollHeight;
+}
+
+function sshShowError(message) {
+    const errorDiv = document.getElementById('ssh-error');
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
+}
+
+function sshClearError() {
+    const errorDiv = document.getElementById('ssh-error');
+    errorDiv.textContent = '';
+    errorDiv.style.display = 'none';
+}
+
+function sshClearForm() {
+    document.getElementById('ssh-hostname').value = '';
+    document.getElementById('ssh-port').value = '22';
+    document.getElementById('ssh-username').value = '';
+    document.getElementById('ssh-password').value = '';
+    sshClearError();
+}
+
+// =============================================================================
+// COMANDOS DE ADMINISTRACIÓN
+// =============================================================================
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        // Mostrar feedback visual
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.textContent = '¡Copiado!';
+        btn.style.background = '#28a745';
+        btn.style.color = 'white';
+
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.style.background = '';
+            btn.style.color = '';
+        }, 1500);
+    }).catch(err => {
+        console.error('Error al copiar:', err);
+        // Fallback para navegadores antiguos
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+    });
+}
+
+// =============================================================================
+// INICIALIZACIÓN
+// =============================================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Restaurar pestaña activa (solo si existe)
+    const activeTab = localStorage.getItem('activeConfigTab');
+    if (activeTab && document.getElementById(activeTab)) {
+        switchTab(activeTab);
+    }
+
+    // Verificar estado SSH
+    fetch('/api/ssh/status', {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.connected) {
+            sshConnected = true;
+            document.getElementById('ssh-connection-panel').style.display = 'none';
+            document.getElementById('ssh-terminal-panel').style.display = 'block';
+            document.getElementById('ssh-connection-status').textContent = 'Conectado';
+            document.getElementById('ssh-connection-status').className = 'ssh-status connected';
+            document.getElementById('ssh-connection-info').textContent = `${data.username}@${data.hostname}`;
+            sshStartPolling();
+        }
+    });
+
+    // Ocultar los campos de clave que son de solo lectura
+    const clavesInputs = document.querySelectorAll('input[name="clave"]');
+    clavesInputs.forEach(function(input) {
+        input.style.display = 'none';
+    });
+
+    // Agregar descripciones como campos ocultos
+    const form = document.querySelector('form');
+    const valorInputs = document.querySelectorAll('input[name="valor"]');
+
+    valorInputs.forEach(function(input, index) {
+        const claveInput = clavesInputs[index];
+        if (claveInput) {
+            const descripcionInput = document.createElement('input');
+            descripcionInput.type = 'hidden';
+            descripcionInput.name = 'descripcion';
+
+            let descripcion = '';
+            switch(claveInput.value) {
+                case 'temp_min_industrial':
+                    descripcion = 'Temperatura mínima permitida para secado industrial';
+                    break;
+                case 'temp_max_industrial':
+                    descripcion = 'Temperatura máxima permitida para secado industrial';
+                    break;
+                case 'temp_min_solar':
+                    descripcion = 'Temperatura mínima permitida para secado solar';
+                    break;
+                case 'temp_max_solar':
+                    descripcion = 'Temperatura máxima permitida para secado solar';
+                    break;
+                case 'humedad_min':
+                    descripcion = 'Humedad mínima permitida';
+                    break;
+                case 'humedad_max':
+                    descripcion = 'Humedad máxima permitida';
+                    break;
+                case 'humedad_advertencia_baja':
+                    descripcion = 'Umbral para advertencia de humedad baja';
+                    break;
+                case 'humedad_advertencia_alta':
+                    descripcion = 'Umbral para advertencia de humedad alta';
+                    break;
+                case 'items_por_pagina':
+                    descripcion = 'Número de items a mostrar por página';
+                    break;
+                case 'precio_cacao':
+                    descripcion = 'Precio del cacao en dólares por tonelada métrica';
+                    break;
+            }
+
+            descripcionInput.value = descripcion;
+            form.appendChild(descripcionInput);
+        }
+    });
+});
+</script>
+
+<style>
+/* ============================================================================
+   ESTILOS BASE DE CONFIGURACIÓN
+   ============================================================================ */
+
+.config-container {
+    background: white;
+    border-radius: 10px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.config-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.config-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* ============================================================================
+   SISTEMA DE PESTAÑAS
+   ============================================================================ */
+
+.tabs-container {
+    width: 100%;
+}
+
+.tabs-header {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 2px solid #e9ecef;
+    margin-bottom: 2rem;
+}
+
+.tab-btn {
+    padding: 0.875rem 1.5rem;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: #6c757d;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tab-btn:hover {
+    color: #8B4513;
+    background: rgba(139, 69, 19, 0.05);
+}
+
+.tab-btn.active {
+    color: #8B4513;
+    border-bottom-color: #8B4513;
+    background: rgba(139, 69, 19, 0.08);
+}
+
+.tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================================
+   CONFIGURACIÓN GENERAL
+   ============================================================================ */
+
+.config-sections {
+    display: grid;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.config-section {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border-left: 4px solid #8B4513;
+}
+
+.config-section h3 {
+    color: #8B4513;
+    margin-bottom: 1.5rem;
+    font-size: 1.2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #495057;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"] {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.form-group input[type="text"]:read-only {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+}
+
+.form-hint {
+    display: block;
+    font-size: 0.875rem;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+/* ============================================================================
+   CONSOLA SSH - DISEÑO CONSISTENTE
+   ============================================================================ */
+
+/* Header de la terminal */
+.ssh-terminal-header-custom {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: #f8f9fa;
+    border: 1px solid #ced4da;
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+}
+
+.ssh-status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.ssh-status-badge.connected {
+    background: #28a745;
+    color: white;
+}
+
+.ssh-status-badge.disconnected {
+    background: #dc3545;
+    color: white;
+}
+
+/* Terminal personalizada */
+.ssh-terminal-custom {
+    padding: 1rem;
+    min-height: 400px;
+    max-height: 500px;
+    overflow-y: auto;
+    background: #1e1e1e;
+    border: 1px solid #ced4da;
+    border-radius: 0 0 8px 8px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+.ssh-output-custom {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: #d4d4d4;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin-bottom: 0.5rem;
+}
+
+.ssh-input-line-custom {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ssh-input-custom {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #d4d4d4;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.9rem;
+    outline: none;
+}
+
+/* Atajos personalizados */
+.ssh-shortcuts-custom {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: #f8f9fa;
+    border: 1px solid #ced4da;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    margin-top: -8px;
+    font-size: 0.85rem;
+}
+
+/* Scrollbar para terminal */
+.ssh-terminal-custom::-webkit-scrollbar {
+    width: 10px;
+}
+
+.ssh-terminal-custom::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+.ssh-terminal-custom::-webkit-scrollbar-thumb {
+    background: #4a4a4a;
+    border-radius: 5px;
+}
+
+.ssh-terminal-custom::-webkit-scrollbar-thumb:hover {
+    background: #6a6a6a;
+}
+
+/* Colores ANSI para la terminal */
+.ansi-30 { color: #000000; }
+.ansi-31 { color: #ff5555; }
+.ansi-32 { color: #50fa7b; }
+.ansi-33 { color: #f1fa8c; }
+.ansi-34 { color: #6272a4; }
+.ansi-35 { color: #ff79c6; }
+.ansi-36 { color: #8be9fd; }
+.ansi-37 { color: #f8f8f2; }
+.ansi-90 { color: #6272a4; }
+.ansi-91 { color: #ff6e6e; }
+.ansi-92 { color: #69ff94; }
+.ansi-93 { color: #ffffa5; }
+.ansi-94 { color: #d6acff; }
+.ansi-95 { color: #ff92df; }
+.ansi-96 { color: #a4ffff; }
+.ansi-97 { color: #ffffff; }
+
+.ansi-40 { background-color: #000000; }
+.ansi-41 { background-color: #ff5555; }
+.ansi-42 { background-color: #50fa7b; }
+.ansi-43 { background-color: #f1fa8c; }
+.ansi-44 { background-color: #6272a4; }
+.ansi-45 { background-color: #ff79c6; }
+.ansi-46 { background-color: #8be9fd; }
+.ansi-47 { background-color: #f8f8f2; }
+
+.ansi-1 { font-weight: bold; }
+.ansi-3 { font-style: italic; }
+.ansi-4 { text-decoration: underline; }
+
+/* ============================================================================
+   TARJETA DE COMANDOS DE ADMINISTRACIÓN
+   ============================================================================ */
+
+.admin-commands-card {
+    background: #f8f9fa;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+}
+
+.admin-commands-card h4 {
+    color: #8B4513;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.command-section {
+    margin-bottom: 1.5rem;
+}
+
+.command-section:last-child {
+    margin-bottom: 0;
+}
+
+.command-section h5 {
+    color: #495057;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.command-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.command-btn {
+    padding: 0.4rem 0.8rem;
+    background: white;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    color: #495057;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.command-btn:hover {
+    background: #8B4513;
+    color: white;
+    border-color: #8B4513;
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .config-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .config-actions {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .tabs-header {
+        flex-wrap: wrap;
+    }
+
+    .tab-btn {
+        flex: 1;
+        min-width: 150px;
+        justify-content: center;
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .ssh-terminal-custom {
+        min-height: 300px;
+        max-height: 400px;
+    }
+
+    .ssh-shortcuts-custom {
+        flex-wrap: wrap;
+    }
+
+    .command-list {
+        justify-content: center;
+    }
+
+    .command-btn {
+        font-size: 0.8rem;
+        padding: 0.35rem 0.6rem;
+    }
+}
+</style>
+{% endblock %}

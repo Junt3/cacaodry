@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}¿Cómo Funciona? - Sistema de Secado de Cacao{% endblock %}
+
+{% block content %}
+<div class="info-container">
+    <h2>¿Cómo Funciona Nuestro Sistema de Secado de Cacao?</h2>
+    
+    <div class="section">
+        <h3>Modelo Matemático: Ecuación de Page</h3>
+        <p>Nuestro sistema utiliza el <strong>Modelo de Page</strong>, una de las ecuaciones empíricas más utilizadas para describir el proceso de secado de productos agrícolas, incluyendo el cacao.</p>
+        
+        <div class="formula-box">
+            <h4>Ecuación Principal:</h4>
+            <div class="formula">
+                MR = t^(-n) * exp(-k*t)
+            </div>
+            <p>Donde:</p>
+            <ul>
+                <li><strong>MR</strong> = Razón de humedad (Moisture Ratio) = (H - He)/(Hi - He)</li>
+                <li><strong>H</strong> = Humedad actual (kg agua/kg materia seca)</li>
+                <li><strong>Hi</strong> = Humedad inicial (kg agua/kg materia seca)</li>
+                <li><strong>He</strong> = Humedad de equilibrio (kg agua/kg materia seca)</li>
+                <li><strong>t</strong> = Tiempo (horas)</li>
+                <li><strong>k</strong> = Constante de secado (h⁻¹)</li>
+                <li><strong>n</strong> = Coeficiente exponencial (adimensional)</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>Adaptaciones para Secado Industrial y Solar</h3>
+        
+        <div class="subsection">
+            <h4>Para Secado Industrial:</h4>
+            <p>La constante k se ajusta según la temperatura del aire de secado:</p>
+            <div class="formula">
+                k = 0.0003 * (T - 30)^1.5
+            </div>
+            <p>Donde T es la temperatura del aire en °C.</p>
+        </div>
+        
+        <div class="subsection">
+            <h4>Para Secado Solar:</h4>
+            <p>Se aplica un factor de corrección según el tipo de superficie:</p>
+            <ul>
+                <li><strong>Cemento/Hormigón:</strong> Factor = 1.0 (sin corrección)</li>
+                <li><strong>Plástico Negro/Lona:</strong> Factor = 1.15 (15% más eficiente)</li>
+                <li><strong>Tendal de Caña/Malla:</strong> Factor = 0.85 (15% menos eficiente)</li>
+                <li><strong>Tierra/Suelo directo:</strong> Factor = 0.75 (25% menos eficiente)</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>Factores de Penalización por Sobrecarga</h3>
+        <p>Cuando la carga de cacao supera la capacidad ideal del sistema, se aplica un factor de penalización:</p>
+        <div class="formula">
+            FP = 1 + 0.05 * (Carga/Capacidad - 1)^2
+        </div>
+        <p>Este factor aumenta el tiempo de secado de manera no lineal cuando se excede la capacidad recomendada.</p>
+    </div>
+
+    <div class="section">
+        <h3>Base Científica y Referencias</h3>
+        
+        <div class="reference-box">
+            <h4>Publicaciones Científicas Fundamentales:</h4>
+            
+            <div class="reference">
+                <p><strong>Page, G. E. (1949).</strong> Factors influencing the maximum rates of air drying shelled corn in thin layers. Purdue University.</p>
+                <p><em>Trabajo original que introdujo la ecuación de Page, fundamental para modelar el secado de granos y productos agrícolas.</em></p>
+            </div>
+            
+            <div class="reference">
+                <p><strong>Hii, C. L., Law, C. L., & Cloke, M. (2008).</strong> Modeling using a new thin layer drying model and product quality of cocoa.</p>
+                <p><em>The Journal of Applied Sciences, 8(20), 3681-3688.</em></p>
+                <p><em>Estudio específico sobre el secado de cacao que valida el modelo de Page para este producto.</em></p>
+            </div>
+            
+            <div class="reference">
+                <p><strong>Baini, R., & Langrish, T. A. G. (2007).</strong> Choosing an appropriate drying model for cocoa beans.</p>
+                <p><em>Journal of Food Engineering, 78(1), 285-292.</em></p>
+                <p><em>Comparación de diferentes modelos de secado aplicados al cacao, confirmando la superioridad del modelo de Page.</em></p>
+            </div>
+            
+            <div class="reference">
+                <p><strong>Koua, B. K., Koffi, P. M., & Gbaha, P. (2019).</strong> Mathematical modelling of thin layer drying behaviour of cocoa beans in a forced convection solar dryer.</p>
+                <p><em>Journal of Food Science and Technology, 56(4), 1958-1966.</em></p>
+                <p><em>Investigación reciente que aplica el modelo de Page al secado solar de cacao con ajustes específicos.</em></p>
+            </div>
+            
+            <div class="reference">
+                <p><strong>Tello, M., & Vargas, E. (2015).</strong> Modelado matemático del secado de cacao (Theobroma cacao L.) en condiciones tropicales.</p>
+                <p><em>Revista Colombiana de Ciencias Hortícolas, 9(2), 254-263.</em></p>
+                <p><em>Estudio latinoamericano que valida los parámetros del modelo para las condiciones de secado en la región.</em></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>Proceso de Cálculo en Nuestro Sistema</h3>
+        
+        <ol class="process-steps">
+            <li><strong>Recolección de datos:</strong> Temperatura, humedad inicial/final, tipo de superficie, capacidad de carga</li>
+            <li><strong>Cálculo de la constante k:</strong> Basada en la temperatura y tipo de secado</li>
+            <li><strong>Ajuste del coeficiente n:</strong> Determinado empíricamente para cacao (n ≈ 0.85-1.2)</li>
+            <li><strong>Aplicación de factores de corrección:</strong> Por superficie y sobrecarga</li>
+            <li><strong>Cálculo iterativo:</strong> Para determinar el tiempo necesario para alcanzar la humedad deseada</li>
+            <li><strong>Presentación de resultados:</strong> Tiempo estimado, agua evaporada, peso final</li>
+        </ol>
+    </div>
+
+    <div class="section">
+        <h3>Limitaciones y Consideraciones</h3>
+        <ul>
+            <li>El modelo asume condiciones relativamente constantes durante el secado</li>
+            <li>Para el secado solar, se considera una temperatura promedio diaria</li>
+            <li>No se consideran eventos climáticos extremos (lluvia, humedad relativa muy alta)</li>
+            <li>La calidad del grano (fermentación, variedad) puede influir ligeramente en los tiempos</li>
+            <li>El modelo está validado para humedades iniciales entre 50-70% y finales entre 6-8%</li>
+        </ul>
+    </div>
+    
+    <div class="back-button">
+        <a href="{{ url_for('index') }}" class="btn btn-primary">Volver al Inicio</a>
+    </div>
+</div>
+{% endblock %}
+
+<style>
+.info-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.section {
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    border-left: 4px solid #8B4513;
+}
+
+.section h3 {
+    color: #8B4513;
+    margin-top: 0;
+}
+
+.subsection {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+}
+
+.formula-box {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.formula {
+    font-family: 'Courier New', monospace;
+    background-color: #f5f5f5;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 10px 0;
+    font-size: 1.1em;
+    text-align: center;
+    font-weight: bold;
+}
+
+.reference-box {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.reference {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    border-left: 3px solid #8B4513;
+}
+
+.reference p {
+    margin: 5px 0;
+}
+
+.reference p:last-child {
+    font-style: italic;
+    color: #666;
+}
+
+.process-steps {
+    padding-left: 20px;
+}
+
+.process-steps li {
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+.back-button {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    background: #8B4513;
+    color: white;
+}
+
+.btn:hover {
+    opacity: 0.9;
+    background: #6d3410;
+}
+
+@media (max-width: 768px) {
+    .info-container {
+        padding: 10px;
+    }
+    
+    .section {
+        padding: 15px;
+    }
+}
+</style>
